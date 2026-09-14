@@ -1,7 +1,7 @@
 [
   {
-    "suggestion_id": "b50ed4b8c5c4bdde",
-    "timestamp": "2026-09-14T10:09:20.208821+00:00",
+    "suggestion_id": "471c1673a30bf5c7",
+    "timestamp": "2026-09-14T10:52:20.029768+00:00",
     "status": "approve_with_correction",
     "suggestion": {
       "raw_line": "service call-home",
@@ -12,7 +12,7 @@
         "condition": "equals False"
       },
       "confidence": 0.88,
-      "rationale": "The command 'service call-home' enables automated diagnostic telemetry. CIS and DISA STIG benchmarks require disabling unnecessary outbound reporting services.",
+      "rationale": "The configuration line `service call-home` maps to the specified compliance rule and data field `csm.services.call_home` because it enables the diagnostic and telemetry services, which are the very services being disabled, to send calls to a call home agent.",
       "framework_hints": [
         {
           "framework": "CIS",
@@ -25,11 +25,11 @@
       ]
     },
     "reviewed_by": "SecOps_Lead_Reviewer",
-    "reviewed_at": "2026-09-14T10:09:20.503051+00:00"
+    "reviewed_at": "2026-09-14T10:52:28.145980+00:00"
   },
   {
-    "suggestion_id": "f25d03406bcbf130",
-    "timestamp": "2026-09-14T10:09:20.461984+00:00",
+    "suggestion_id": "431d3af7642bcb54",
+    "timestamp": "2026-09-14T10:52:28.075845+00:00",
     "status": "rejected",
     "suggestion": {
       "raw_line": "banner motd ^C Unauthorized ^C",
@@ -40,7 +40,7 @@
         "condition": "not_null"
       },
       "confidence": 0.65,
-      "rationale": "Banner statement detected, but exact delimiter or text requires human review.",
+      "rationale": "This CLI configuration line maps to the specified compliance rule and data field because it specifies a banner with the text \"Unauthorized\" and \"C\" (indicating the end of the banner) at the beginning and end of the string, respectively, in a line that is displayed to the user with the \"csm.management\" command set in the banner.",
       "framework_hints": [
         {
           "framework": "CIS",
@@ -53,6 +53,6 @@
       ]
     },
     "reviewed_by": "SecOps_Lead_Reviewer",
-    "reviewed_at": "2026-09-14T10:09:20.487572+00:00"
+    "reviewed_at": "2026-09-14T10:52:28.115156+00:00"
   }
 ]

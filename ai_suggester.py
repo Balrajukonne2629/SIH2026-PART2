@@ -7,6 +7,8 @@ import datetime
 import hashlib
 import json
 import pathlib
+import urllib.error
+import urllib.request
 import torch
 from transformers import AutoModel, AutoTokenizer
 
@@ -34,6 +36,42 @@ def _get_embedding(text: str) -> torch.Tensor:
         out = mod(**inputs)
     return out.last_hidden_state.mean(dim=1).squeeze(0)
 
+_OLLAMA_URL = "http://localhost:11434/api/generate"
+_OLLAMA_MODEL = "llama3.2:1b"
+_REFUSAL_MARKERS = (
+    "i can't provide", "i cannot provide", "illegal or harmful",
+    "i'm not able to", "i can't assist", "i cannot assist",
+    "i'm unable to", "associated with malicious",
+    "i can't fulfill", "i cannot fulfill", "i can't complete",
+)
+
+def _generate_rationale_ai(line_clean: str, rule_title: str, csm_field: str, confidence: float, fallback_rationale: str) -> str:
+    prompt = (
+        "You are a technical writer documenting network device configuration rules.\n"
+        "Explain in 1-2 clear, factual sentences why the following CLI configuration line maps to the specified compliance rule and data field.\n\n"
+        f"Configuration line: {line_clean}\n"
+        f"Target rule: {rule_title}\n"
+        f"Target field: {csm_field}\n\n"
+        "Rationale:"
+    )
+    try:
+        payload = json.dumps({"model": _OLLAMA_MODEL, "prompt": prompt, "stream": False}).encode("utf-8")
+        req = urllib.request.Request(_OLLAMA_URL, data=payload, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        response_text = data.get("response", "").strip()
+        is_refusal = any(m in response_text.lower() for m in _REFUSAL_MARKERS)
+        if len(response_text) > 20 and not is_refusal:
+            print(f"[suggest_mapping] path=ollama model={_OLLAMA_MODEL} chars={len(response_text)}")
+            print(f"  AI Rationale: {response_text}")
+            return response_text
+        elif is_refusal:
+            print(f"[suggest_mapping] path=fallback reason=safety_refusal chars={len(response_text)}")
+    except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError) as exc:
+        print(f"[suggest_mapping] path=fallback reason={type(exc).__name__}: {exc}")
+
+    return fallback_rationale
+
 def suggest_mapping(unmapped_line: str, rules_context: list = None) -> dict:
     if rules_context is None:
         if RULES_FILE.exists():
@@ -56,12 +94,16 @@ def suggest_mapping(unmapped_line: str, rules_context: list = None) -> dict:
             best_rule_id = r["vendor_rule_id"]
 
     if best_sim >= 0.82:
+        rule_title = best_rule_id
+        csm_field = "existing_rule"
+        fallback_rat = f"Suggested mapping based on semantic similarity with {best_rule_id}, confidence {int(best_sim * 100)}%."
+        rationale = _generate_rationale_ai(line_clean, rule_title, csm_field, best_sim, fallback_rat)
         return {
             "raw_line": line_clean,
             "suggested_rule_id": best_rule_id,
             "suggested_new_rule": None,
             "confidence": round(float(best_sim), 2),
-            "rationale": f"CLI statement aligns semantically with existing control {best_rule_id} (similarity {best_sim:.2f}).",
+            "rationale": rationale,
             "framework_hints": [{"framework": "CIS", "possible_control_id": "CIS-Existing"}]
         }
 
@@ -73,7 +115,6 @@ def suggest_mapping(unmapped_line: str, rules_context: list = None) -> dict:
             "condition": "equals False"
         }
         confidence = 0.88
-        rationale = "The command 'service call-home' enables automated diagnostic telemetry. CIS and DISA STIG benchmarks require disabling unnecessary outbound reporting services."
         hints = [
             {"framework": "CIS", "possible_control_id": "CIS-1.4.1"},
             {"framework": "DISA-STIG", "possible_control_id": "V-215849"}
@@ -85,7 +126,6 @@ def suggest_mapping(unmapped_line: str, rules_context: list = None) -> dict:
             "condition": "not_null"
         }
         confidence = 0.65
-        rationale = "Banner statement detected, but exact delimiter or text requires human review."
         hints = [
             {"framework": "CIS", "possible_control_id": "CIS-1.2.1"},
             {"framework": "DISA-STIG", "possible_control_id": "V-215850"}
@@ -97,8 +137,16 @@ def suggest_mapping(unmapped_line: str, rules_context: list = None) -> dict:
             "condition": "not_null"
         }
         confidence = max(0.20, round(float(best_sim), 2))
-        rationale = f"Unmapped CLI statement '{line_clean}' does not match existing rule taxonomy."
         hints = []
+
+    fallback_rat = f"Suggested mapping based on semantic similarity, confidence {int(confidence * 100)}%."
+    rationale = _generate_rationale_ai(
+        line_clean,
+        new_rule["internalTitle"],
+        new_rule["csmFieldChecked"],
+        confidence,
+        fallback_rat
+    )
 
     return {
         "raw_line": line_clean,

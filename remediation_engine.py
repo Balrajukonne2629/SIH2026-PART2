@@ -7,6 +7,7 @@ Guaranteed execution-safe: remediation commands are NEVER executed.
 import ast
 import json
 import pathlib
+import re
 import urllib.error
 import urllib.request
 import jinja2
@@ -105,30 +106,32 @@ def explain_failure_ai(rule_id: str, csm: dict, remediation_cmd: str) -> dict:
 
     # Build prompt from real audit context
     ntp_srv = csm.get("ntp", {}).get("servers", ["configured servers"])
-    evidence = csm.get("raw_evidence", [])
-    evidence_summary = "; ".join(str(e.get("field", "")) for e in evidence[:5]) if evidence else "no evidence fields"
+    if rule_id == "CISCO-NTP-001":
+        ntp_auth = csm.get("ntp", {}).get("authentication_enabled", False)
+        evidence_summary = f"ntp.authenticate = {ntp_auth} (should be True); ntp.servers = {ntp_srv}"
+    else:
+        evidence = csm.get("raw_evidence", [])
+        evidence_summary = "; ".join(f"{e.get('field', '')}={e.get('value', '')}" for e in evidence[:5]) if evidence else "no evidence fields"
 
+    _last_cmd = remediation_cmd.splitlines()[-1].strip()
+    _hostname = csm.get("device", {}).get("hostname", "unknown")
     prompt = (
-        f"You are a technical writer producing compliance documentation for network device audits.\n"
-        f"Write two short paragraphs in plain, neutral technical language.\n\n"
-        f"Device audit record:\n"
-        f"  Device hostname: {csm.get('device', {}).get('hostname', 'unknown')}\n"
-        f"  Rule ID: {rule_id}\n"
-        f"  Configuration evidence collected: {evidence_summary}\n"
-        f"  Corrective CLI command: {remediation_cmd}\n\n"
-        f"Paragraph 1 — label it WHY_IT_FAILED:\n"
-        f"Describe what configuration setting is absent or misconfigured on this device, "
-        f"and what that setting normally does when it is present. Use only factual, "
-        f"procedural language. Do not use the words: risk, threat, vulnerability, "
-        f"attacker, unauthorized, exploit, compromise, breach, malicious, hacker, or harmful.\n\n"
-        f"Paragraph 2 — label it WHAT_REMEDIATION_DOES:\n"
-        f"Describe mechanically what the corrective CLI command changes on the device "
-        f"and what the device will do differently after the command is applied. "
-        f"Use only factual, procedural language. Same word restriction applies.\n"
+        f"Complete this technical audit report. Write only factual, procedural sentences.\n\n"
+        f"Device: {_hostname} | Rule: {rule_id}\n"
+        f"Configuration evidence: {evidence_summary}\n\n"
+        f"WHY_IT_FAILED: [In 2 sentences: what IOS-XE configuration command or setting is "
+        f"absent on this device, and what that setting does when it is configured.]\n\n"
+        f"WHAT_REMEDIATION_DOES: [In 2 sentences: what the command '{_last_cmd}' adds to "
+        f"the device configuration, and what the device does differently after it is applied.]\n"
     )
 
-    # Phrases that indicate the model refused to answer rather than explaining
-    _REFUSAL_MARKERS = ("i can't provide", "i cannot provide", "illegal or harmful", "i'm not able to")
+    # Phrases that indicate the model refused rather than answering
+    _REFUSAL_MARKERS = (
+        "i can't provide", "i cannot provide", "illegal or harmful",
+        "i'm not able to", "i can't assist", "i cannot assist",
+        "i'm unable to", "associated with malicious",
+        "i can't fulfill", "i cannot fulfill", "i can't complete",
+    )
 
     ollama_ok = False
     try:
@@ -141,16 +144,21 @@ def explain_failure_ai(rule_id: str, csm: dict, remediation_cmd: str) -> dict:
         if len(response_text) > 20 and not is_refusal:
             ollama_ok = True
             print(f"[explain_failure_ai] path=ollama model={_MODEL} chars={len(response_text)}")
-            # Split response into why/what halves if tagged
-            why = what = response_text
-            if "WHY_IT_FAILED" in response_text and "WHAT_REMEDIATION_DOES" in response_text:
-                parts = response_text.split("WHAT_REMEDIATION_DOES", 1)
-                why = parts[0].replace("WHY_IT_FAILED", "").replace("1.", "").strip().lstrip(":").strip()
-                what = parts[1].replace("2.", "").strip().lstrip(":").strip()
-            elif "2." in response_text:
-                parts = response_text.split("2.", 1)
-                why = parts[0].replace("1.", "").strip()
+            # Split on WHAT_REMEDIATION_DOES — handles both "LABEL: text" and "LABEL\n\ntext"
+            _WHAT_PAT = re.compile(r'WHAT_REMEDIATION_DOES\s*:?\s*', re.IGNORECASE)
+            parts = _WHAT_PAT.split(response_text, maxsplit=1)
+            if len(parts) == 2:
+                why = re.sub(r'(?i)^WHY_IT_FAILED\s*:?\s*', '', parts[0]).strip()
                 what = parts[1].strip()
+            else:
+                why = what = response_text
+            # Strip echoed context lines the model sometimes repeats from the prompt
+            _CTX_PAT = re.compile(
+                r'^(here is.*?\n+|device\s*:.*?\n+|rule\s*:.*?\n+|configuration evidence\s*:.*?\n+)+',
+                re.IGNORECASE | re.MULTILINE
+            )
+            why = _CTX_PAT.sub('', why).lstrip('\n').strip()
+            what = _CTX_PAT.sub('', what).lstrip('\n').strip()
             return {
                 "rule_id": rule_id,
                 "why_it_failed": why,
