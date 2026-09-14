@@ -1,0 +1,266 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "NTRO PS26155 Compliance Auditor Architecture",
+    "quality_profile": "showcase",
+    "viewBox": [1240, 570],
+    "views": [
+      {
+        "id": "full-pipeline",
+        "label": "Full Audit Pipeline",
+        "focus": ["operator", "ui", "gateway", "parser", "evaluator", "rules_db", "remediation", "ledger", "reports"],
+        "note": "Trace configuration ingestion, CSM normalization, rule evaluation, remediation, and immutable ledger recording."
+      },
+      {
+        "id": "ai-enrichment",
+        "label": "AI Suggestion Loop",
+        "focus": ["parser", "ai_suggester", "trusted_db", "evaluator"],
+        "note": "Unmapped CLI lines evaluated offline via DistilBERT with reviewer approval before feeding custom rules."
+      },
+      {
+        "id": "tamper-proof-ledger",
+        "label": "Cryptographic Integrity",
+        "focus": ["gateway", "remediation", "ledger", "reports"],
+        "note": "SHA-256 hash chaining and verified QR compliance certificate generation."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "operator",
+      "type": "external",
+      "label": "Security Auditor",
+      "sublabel": "Browser / CLI Operator",
+      "pos": [40, 260],
+      "size": [130, 60]
+    },
+    {
+      "id": "ui",
+      "type": "frontend",
+      "label": "React Dashboard",
+      "sublabel": "Audit UI & Review",
+      "pos": [230, 260],
+      "size": [140, 60],
+      "tag": "Vite + Tailwind",
+      "brand": "react"
+    },
+    {
+      "id": "gateway",
+      "type": "backend",
+      "label": "FastAPI Gateway",
+      "sublabel": "REST API :8000",
+      "pos": [420, 260],
+      "size": [140, 60],
+      "tag": "Python 3.11",
+      "brand": "fastapi"
+    },
+    {
+      "id": "parser",
+      "type": "backend",
+      "label": "Cisco Auditor",
+      "sublabel": "IOS-XE & CSM Parser",
+      "pos": [620, 260],
+      "size": [150, 60],
+      "tag": "cisco_auditor.py"
+    },
+    {
+      "id": "evaluator",
+      "type": "backend",
+      "label": "Compliance Engine",
+      "sublabel": "Condition Evaluator",
+      "pos": [830, 260],
+      "size": [150, 60],
+      "tag": "CIS / NIST Check"
+    },
+    {
+      "id": "rules_db",
+      "type": "database",
+      "label": "Rule Library",
+      "sublabel": "Baseline Rules JSON",
+      "pos": [1040, 260],
+      "size": [140, 60]
+    },
+    {
+      "id": "ai_suggester",
+      "type": "backend",
+      "label": "AI Suggester",
+      "sublabel": "DistilBERT 66M (Offline)",
+      "pos": [620, 70],
+      "size": [150, 60],
+      "tag": "ai_suggester.py"
+    },
+    {
+      "id": "trusted_db",
+      "type": "database",
+      "label": "Trusted Mappings",
+      "sublabel": "Approved Rules JSON",
+      "pos": [880, 70],
+      "size": [150, 60]
+    },
+    {
+      "id": "remediation",
+      "type": "backend",
+      "label": "Remediation Engine",
+      "sublabel": "Jinja2 + AST Safety",
+      "pos": [830, 450],
+      "size": [150, 60],
+      "tag": "remediation_engine.py"
+    },
+    {
+      "id": "ledger",
+      "type": "security",
+      "label": "Audit Ledger",
+      "sublabel": "SHA-256 Hash Chain",
+      "pos": [620, 450],
+      "size": [150, 60],
+      "tag": "audit_log.jsonl"
+    },
+    {
+      "id": "reports",
+      "type": "backend",
+      "label": "Report Generator",
+      "sublabel": "PDF + QR Tamper-Proof",
+      "pos": [410, 450],
+      "size": [140, 60],
+      "tag": "report_generator.py"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "NTRO PS26155 Core Auditor Platform",
+      "wraps": ["gateway", "parser", "evaluator", "rules_db", "ai_suggester", "trusted_db", "remediation", "ledger", "reports"]
+    },
+    {
+      "kind": "security-group",
+      "label": "Cryptographic Verification Zone",
+      "wraps": ["ledger", "reports"]
+    }
+  ],
+  "connections": [
+    {
+      "id": "operator-ui",
+      "from": "operator",
+      "to": "ui",
+      "label": "HTTPS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "ui-gateway",
+      "from": "ui",
+      "to": "gateway",
+      "label": "REST"
+    },
+    {
+      "id": "gateway-parser",
+      "from": "gateway",
+      "to": "parser",
+      "label": "Raw CLI"
+    },
+    {
+      "id": "parser-evaluator",
+      "from": "parser",
+      "to": "evaluator",
+      "label": "CSM State"
+    },
+    {
+      "id": "rules-evaluator",
+      "from": "rules_db",
+      "to": "evaluator",
+      "label": "Rules",
+      "fromSide": "left",
+      "toSide": "right"
+    },
+    {
+      "id": "parser-ai",
+      "from": "parser",
+      "to": "ai_suggester",
+      "label": "Unmapped",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "labelDy": -35
+    },
+    {
+      "id": "ai-trusted",
+      "from": "ai_suggester",
+      "to": "trusted_db",
+      "label": "Approval",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "trusted-evaluator",
+      "from": "trusted_db",
+      "to": "evaluator",
+      "label": "Custom Rules",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 35
+    },
+    {
+      "id": "evaluator-remediation",
+      "from": "evaluator",
+      "to": "remediation",
+      "label": "Violations",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 35
+    },
+    {
+      "id": "remediation-ledger",
+      "from": "remediation",
+      "to": "ledger",
+      "label": "Audit Event",
+      "variant": "security",
+      "fromSide": "left",
+      "toSide": "right"
+    },
+    {
+      "id": "ledger-reports",
+      "from": "ledger",
+      "to": "reports",
+      "label": "Hash Chain",
+      "variant": "security",
+      "fromSide": "left",
+      "toSide": "right",
+      "labelDy": 24
+    },
+    {
+      "id": "reports-gateway",
+      "from": "reports",
+      "to": "gateway",
+      "label": "Signed PDF",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "labelDy": -35
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Ingestion & Normalization",
+      "items": [
+        "Cisco IOS-XE parser normalizes raw configuration to Common Schema Model (CSM).",
+        "Deterministic condition evaluator checks baseline CIS/NIST security rules."
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Offline AI Interpretation",
+      "items": [
+        "Unmapped CLI lines analyzed locally by DistilBERT 66M without external egress.",
+        "Strict human-in-the-loop approval persists trusted mappings."
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Remediation & Tamper Proofing",
+      "items": [
+        "Jinja2 remediation engine with AST safety guard (display-only commands).",
+        "Append-only SHA-256 hash-chained audit ledger and verifiable PDF certificate."
+      ]
+    }
+  ]
+}

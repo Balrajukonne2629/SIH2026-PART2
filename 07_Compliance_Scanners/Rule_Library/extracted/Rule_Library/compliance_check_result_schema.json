@@ -1,0 +1,273 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sih26155.local/schemas/compliance-check-result-schema.json",
+  "title": "Network Compliance Check Result Schema",
+  "description": "Standardized output format for configuration compliance checks.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "result_id",
+    "device",
+    "scan",
+    "summary",
+    "findings"
+  ],
+  "properties": {
+    "result_id": {
+      "type": "string"
+    },
+    "device": {
+      "type": "object",
+      "required": [
+        "hostname",
+        "vendor",
+        "platform"
+      ],
+      "properties": {
+        "hostname": {
+          "type": "string"
+        },
+        "vendor": {
+          "type": "string"
+        },
+        "platform": {
+          "type": "string"
+        },
+        "management_ip": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "scan": {
+      "type": "object",
+      "required": [
+        "started_at",
+        "completed_at",
+        "scanner_version",
+        "framework"
+      ],
+      "properties": {
+        "started_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "completed_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "scanner_version": {
+          "type": "string"
+        },
+        "framework": {
+          "type": "string"
+        },
+        "configuration_hash": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "total_rules",
+        "passed",
+        "failed",
+        "unknown",
+        "not_applicable",
+        "compliance_percentage"
+      ],
+      "properties": {
+        "total_rules": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "passed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "unknown": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "not_applicable": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "compliance_percentage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "risk_score": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "rule_id",
+          "control_name",
+          "category",
+          "status",
+          "severity",
+          "message",
+          "evidence",
+          "remediation"
+        ],
+        "properties": {
+          "rule_id": {
+            "type": "string"
+          },
+          "control_name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PASS",
+              "FAIL",
+              "UNKNOWN",
+              "NOT_APPLICABLE",
+              "ERROR"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low",
+              "informational"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "expected": {
+            "type": [
+              "string",
+              "number",
+              "boolean",
+              "object",
+              "array",
+              "null"
+            ]
+          },
+          "actual": {
+            "type": [
+              "string",
+              "number",
+              "boolean",
+              "object",
+              "array",
+              "null"
+            ]
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "source",
+                "detail"
+              ],
+              "properties": {
+                "source": {
+                  "type": "string"
+                },
+                "detail": {
+                  "type": "string"
+                },
+                "line_numbers": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "confidence": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              }
+            }
+          },
+          "remediation": {
+            "type": "object",
+            "required": [
+              "description",
+              "vendor_commands"
+            ],
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "vendor_commands": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "risk_warning": {
+                "type": "string"
+              }
+            }
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "checked_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "field": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

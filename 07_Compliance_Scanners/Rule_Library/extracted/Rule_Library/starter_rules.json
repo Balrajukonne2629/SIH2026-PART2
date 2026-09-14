@@ -1,0 +1,183 @@
+{
+  "project": "SIH26155",
+  "library_version": "0.1",
+  "description": "Starter multi-vendor network security compliance rule library",
+  "validation_status": "unvalidated",
+  "important_note": "These are prototype rules. Exact syntax, applicability, and framework mappings must be verified before production use.",
+  "rules": [
+    {
+      "rule_id": "COMMON-SSH-001",
+      "title": "Secure remote administration",
+      "category": "SSH",
+      "vendor": "common",
+      "framework": "Organizational Policy",
+      "severity": "high",
+      "check_type": "contextual",
+      "objective": "Remote administrative access must use approved secure SSH settings.",
+      "expected_controls": [
+        "SSH is the approved remote-administration protocol",
+        "Approved authentication methods are configured",
+        "Management access is restricted to authorized sources"
+      ],
+      "status_if_insufficient_evidence": "unable_to_determine",
+      "validation_status": "unvalidated"
+    },
+    {
+      "rule_id": "COMMON-AAA-001",
+      "title": "Centralized or approved administrative authentication",
+      "category": "AAA",
+      "vendor": "common",
+      "framework": "Organizational Policy",
+      "severity": "high",
+      "check_type": "contextual",
+      "objective": "Administrative authentication must use an approved local or centralized authentication method.",
+      "expected_controls": [
+        "Approved authentication source is configured",
+        "Authorization policy is defined where required",
+        "Accounting or audit logging is configured where required"
+      ],
+      "status_if_insufficient_evidence": "unable_to_determine",
+      "validation_status": "unvalidated"
+    },
+    {
+      "rule_id": "COMMON-NTP-001",
+      "title": "Use an approved time source",
+      "category": "NTP",
+      "vendor": "common",
+      "framework": "NIST",
+      "severity": "medium",
+      "check_type": "presence",
+      "objective": "Network devices should synchronize time with approved organizational time sources.",
+      "expected_controls": [
+        "Approved NTP server is configured",
+        "NTP authentication is used when required by policy",
+        "Time synchronization status can be verified"
+      ],
+      "status_if_insufficient_evidence": "unable_to_determine",
+      "validation_status": "unvalidated"
+    },
+    {
+      "rule_id": "COMMON-LOG-001",
+      "title": "Enable security event logging",
+      "category": "Logging",
+      "vendor": "common",
+      "framework": "NIST",
+      "severity": "high",
+      "check_type": "contextual",
+      "objective": "Security-relevant events should be logged and retained according to policy.",
+      "expected_controls": [
+        "Local or remote logging is configured",
+        "Relevant severity levels are captured",
+        "Remote syslog is configured when required",
+        "Log timestamps are synchronized"
+      ],
+      "status_if_insufficient_evidence": "unable_to_determine",
+      "validation_status": "unvalidated"
+    },
+    {
+      "rule_id": "COMMON-SNMP-001",
+      "title": "Restrict network monitoring access",
+      "category": "SNMP",
+      "vendor": "common",
+      "framework": "Organizational Policy",
+      "severity": "high",
+      "check_type": "contextual",
+      "objective": "SNMP access must use approved security settings and trusted monitoring sources.",
+      "expected_controls": [
+        "Approved SNMP version is used",
+        "Access is restricted to authorized monitoring systems",
+        "Default or weak community strings are not used",
+        "SNMP source or management path is controlled"
+      ],
+      "status_if_insufficient_evidence": "unable_to_determine",
+      "validation_status": "unvalidated"
+    },
+    {
+      "rule_id": "COMMON-ACL-001",
+      "title": "Restrict management-plane access",
+      "category": "ACL",
+      "vendor": "common",
+      "framework": "CIS",
+      "severity": "high",
+      "check_type": "relationship",
+      "objective": "Management services must be restricted to approved administrative networks.",
+      "expected_controls": [
+        "Management ACL or equivalent restriction exists",
+        "Only approved source networks are permitted",
+        "Rules do not unnecessarily allow any source",
+        "ACL is applied to the correct interface or service"
+      ],
+      "status_if_insufficient_evidence": "unable_to_determine",
+      "validation_status": "unvalidated"
+    },
+    {
+      "rule_id": "COMMON-INT-001",
+      "title": "Harden unused interfaces",
+      "category": "Interface",
+      "vendor": "common",
+      "framework": "CIS",
+      "severity": "medium",
+      "check_type": "contextual",
+      "objective": "Unused network interfaces should be disabled or placed in an approved inactive state.",
+      "expected_controls": [
+        "Unused interfaces are identified",
+        "Unused interfaces are administratively disabled where required",
+        "Unused interfaces do not provide unintended network access"
+      ],
+      "status_if_insufficient_evidence": "unable_to_determine",
+      "validation_status": "unvalidated"
+    },
+    {
+      "rule_id": "COMMON-ROUTING-001",
+      "title": "Protect routing-protocol sessions",
+      "category": "Routing",
+      "vendor": "common",
+      "framework": "NIST",
+      "severity": "high",
+      "check_type": "contextual",
+      "objective": "Routing protocols should use approved authentication and peer restrictions.",
+      "expected_controls": [
+        "Only approved routing peers are configured",
+        "Routing authentication is enabled where required",
+        "Routing updates are restricted to trusted interfaces or peers"
+      ],
+      "status_if_insufficient_evidence": "unable_to_determine",
+      "validation_status": "unvalidated"
+    },
+    {
+      "rule_id": "COMMON-STP-001",
+      "title": "Protect access ports against rogue BPDUs",
+      "category": "Layer-2 Security",
+      "vendor": "common",
+      "framework": "Organizational Policy",
+      "severity": "high",
+      "check_type": "contextual",
+      "objective": "Access-facing interfaces should use suitable spanning-tree protection.",
+      "expected_controls": [
+        "Access ports are correctly identified",
+        "BPDU protection is enabled where supported and required",
+        "Edge-port settings are not applied incorrectly to infrastructure links"
+      ],
+      "status_if_insufficient_evidence": "unable_to_determine",
+      "validation_status": "unvalidated"
+    },
+    {
+      "rule_id": "COMMON-MGMT-001",
+      "title": "Separate management and production traffic",
+      "category": "Management Plane",
+      "vendor": "common",
+      "framework": "NIST",
+      "severity": "high",
+      "check_type": "relationship",
+      "objective": "Management traffic should be isolated or appropriately restricted from production traffic.",
+      "expected_controls": [
+        "Management VRF or equivalent isolation is configured where required",
+        "Management services use approved interfaces or routing contexts",
+        "Management access is restricted by ACL or equivalent controls",
+        "Unintended exposure of management services is absent"
+      ],
+      "status_if_insufficient_evidence": "unable_to_determine",
+      "validation_status": "unvalidated"
+    }
+  ]
+}

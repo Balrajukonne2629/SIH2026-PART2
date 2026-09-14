@@ -1,0 +1,686 @@
+﻿{
+    "project":  "SIH26155",
+    "mapping_version":  "0.1",
+    "validation_status":  "manually mapped, pending SME review",
+    "important_note":  "This is a prototype mapping. Commands and feature support must be verified against the exact vendor OS version before production use.",
+    "vendors":  {
+                    "Cisco IOS-XE":  {
+                                         "vendor":  "Cisco",
+                                         "operating_system":  "IOS-XE",
+                                         "rules":  [
+                                                       {
+                                                           "common_rule_id":  "COMMON-SSH-001",
+                                                           "vendor_rule_id":  "CISCO-SSH-001",
+                                                           "configuration_evidence":  [
+                                                                                          "ip ssh version 2",
+                                                                                          "line vty",
+                                                                                          "transport input ssh",
+                                                                                          "login authentication"
+                                                                                      ],
+                                                           "check_focus":  [
+                                                                               "SSH version",
+                                                                               "VTY access",
+                                                                               "approved authentication",
+                                                                               "management access restrictions"
+                                                                           ],
+                                                           "frameworkMappings":  [
+                                                                                     {
+                                                                                         "framework":  "CIS",
+                                                                                         "controlId":  "2.1.1.2",
+                                                                                         "sourceRef":  "CIS_Cisco_IOS_XE_17.x_Benchmark_v2.2.1.pdf §2.1.1.2"
+                                                                                     },
+                                                                                     {
+                                                                                         "framework":  "NIST-800-53",
+                                                                                         "controlId":  "MA-4 (6)",
+                                                                                         "sourceRef":  "NIST SP 800-53 rev5, via CCI-003123"
+                                                                                     },
+                                                                                     {
+                                                                                         "framework":  "DISA-STIG",
+                                                                                         "controlId":  "V-215845",
+                                                                                         "sourceRef":  "U_Cisco_IOS-XE_Router_NDM_STIG_V3R7_Manual-xccdf.xml, Cisco IOS XE Router NDM STIG V3R7"
+                                                                                     }
+                                                                                 ],
+                                                           "status":  "manually mapped, pending SME review"
+                                                       },
+                                                       {
+                                                           "common_rule_id":  "COMMON-AAA-001",
+                                                           "vendor_rule_id":  "CISCO-AAA-001",
+                                                           "configuration_evidence":  [
+                                                                                          "aaa new-model",
+                                                                                          "aaa authentication login",
+                                                                                          "aaa authorization exec",
+                                                                                          "aaa accounting"
+                                                                                      ],
+                                                           "check_focus":  [
+                                                                               "AAA enabled",
+                                                                               "authentication method",
+                                                                               "authorization",
+                                                                               "accounting"
+                                                                           ],
+                                                           "frameworkMappings":  [
+                                                                                     {
+                                                                                         "framework":  "CIS",
+                                                                                         "controlId":  "1.1.1",
+                                                                                         "sourceRef":  "CIS_Cisco_IOS_XE_17.x_Benchmark_v2.2.1.pdf §1.1.1"
+                                                                                     },
+                                                                                     {
+                                                                                         "framework":  "NIST-800-53",
+                                                                                         "controlId":  "CM-6 (1)",
+                                                                                         "sourceRef":  "NIST SP 800-53 rev5, via CCI-000370"
+                                                                                     },
+                                                                                     {
+                                                                                         "framework":  "DISA-STIG",
+                                                                                         "controlId":  "V-215854",
+                                                                                         "sourceRef":  "U_Cisco_IOS-XE_Router_NDM_STIG_V3R7_Manual-xccdf.xml, Cisco IOS XE Router NDM STIG V3R7"
+                                                                                     }
+                                                                                 ],
+                                                           "status":  "manually mapped, pending SME review"
+                                                       },
+                                                       {
+                                                           "common_rule_id":  "COMMON-NTP-001",
+                                                           "vendor_rule_id":  "CISCO-NTP-001",
+                                                           "configuration_evidence":  [
+                                                                                          "ntp server",
+                                                                                          "ntp authenticate",
+                                                                                          "ntp trusted-key",
+                                                                                          "ntp source"
+                                                                                      ],
+                                                           "check_focus":  [
+                                                                               "approved NTP server",
+                                                                               "NTP authentication",
+                                                                               "source interface"
+                                                                           ],
+                                                           "frameworkMappings":  [
+                                                                                     {
+                                                                                         "framework":  "CIS",
+                                                                                         "controlId":  "2.3.1.1",
+                                                                                         "sourceRef":  "CIS_Cisco_IOS_XE_17.x_Benchmark_v2.2.1.pdf §2.3.1.1"
+                                                                                     },
+                                                                                     {
+                                                                                         "framework":  "NIST-800-53",
+                                                                                         "controlId":  "IA-3 (1)",
+                                                                                         "sourceRef":  "NIST SP 800-53 rev5, via CCI-001967"
+                                                                                     },
+                                                                                     {
+                                                                                         "framework":  "DISA-STIG",
+                                                                                         "controlId":  "V-215843",
+                                                                                         "sourceRef":  "U_Cisco_IOS-XE_Router_NDM_STIG_V3R7_Manual-xccdf.xml, Cisco IOS XE Router NDM STIG V3R7"
+                                                                                     }
+                                                                                 ],
+                                                           "status":  "manually mapped, pending SME review"
+                                                       },
+                                                       {
+                                                           "common_rule_id":  "COMMON-LOG-001",
+                                                           "vendor_rule_id":  "CISCO-LOG-001",
+                                                           "configuration_evidence":  [
+                                                                                          "logging host",
+                                                                                          "logging trap",
+                                                                                          "logging buffered",
+                                                                                          "service timestamps log"
+                                                                                      ],
+                                                           "check_focus":  [
+                                                                               "remote logging",
+                                                                               "severity",
+                                                                               "timestamps",
+                                                                               "local buffer"
+                                                                           ],
+                                                           "frameworkMappings":  [
+                                                                                     {
+                                                                                         "framework":  "CIS",
+                                                                                         "controlId":  "2.2.4",
+                                                                                         "sourceRef":  "CIS_Cisco_IOS_XE_17.x_Benchmark_v2.2.1.pdf §2.2.4"
+                                                                                     },
+                                                                                     {
+                                                                                         "framework":  "NIST-800-53",
+                                                                                         "controlId":  "AU-4 (1)",
+                                                                                         "sourceRef":  "NIST SP 800-53 rev5, via CCI-001851"
+                                                                                     },
+                                                                                     {
+                                                                                         "framework":  "DISA-STIG",
+                                                                                         "controlId":  "V-220139",
+                                                                                         "sourceRef":  "U_Cisco_IOS-XE_Router_NDM_STIG_V3R7_Manual-xccdf.xml, Cisco IOS XE Router NDM STIG V3R7"
+                                                                                     }
+                                                                                 ],
+                                                           "status":  "manually mapped, pending SME review"
+                                                       },
+                                                       {
+                                                           "common_rule_id":  "COMMON-SNMP-001",
+                                                           "vendor_rule_id":  "CISCO-SNMP-001",
+                                                           "configuration_evidence":  [
+                                                                                          "snmp-server group",
+                                                                                          "snmp-server user",
+                                                                                          "snmp-server host",
+                                                                                          "snmp-server community"
+                                                                                      ],
+                                                           "check_focus":  [
+                                                                               "SNMP version",
+                                                                               "secure authentication",
+                                                                               "authorized monitoring hosts",
+                                                                               "weak community strings"
+                                                                           ],
+                                                           "frameworkMappings":  [
+                                                                                     {
+                                                                                         "framework":  "CIS",
+                                                                                         "controlId":  "1.5.7",
+                                                                                         "sourceRef":  "CIS_Cisco_IOS_XE_17.x_Benchmark_v2.2.1.pdf §1.5.7"
+                                                                                     },
+                                                                                     {
+                                                                                         "framework":  "NIST-800-53",
+                                                                                         "controlId":  "IA-3 (1)",
+                                                                                         "sourceRef":  "NIST SP 800-53 rev5, via CCI-001967"
+                                                                                     },
+                                                                                     {
+                                                                                         "framework":  "DISA-STIG",
+                                                                                         "controlId":  "V-215841",
+                                                                                         "sourceRef":  "U_Cisco_IOS-XE_Router_NDM_STIG_V3R7_Manual-xccdf.xml, Cisco IOS XE Router NDM STIG V3R7"
+                                                                                     }
+                                                                                 ],
+                                                           "status":  "manually mapped, pending SME review"
+                                                       },
+                                                       {
+                                                           "common_rule_id":  "COMMON-ACL-001",
+                                                           "vendor_rule_id":  "CISCO-ACL-001",
+                                                           "configuration_evidence":  [
+                                                                                          "ip access-list",
+                                                                                          "access-class",
+                                                                                          "ip access-group",
+                                                                                          "ipv6 access-class"
+                                                                                      ],
+                                                           "check_focus":  [
+                                                                               "management ACL",
+                                                                               "source restriction",
+                                                                               "ACL application"
+                                                                           ],
+                                                           "frameworkMappings":  [
+                                                                                     {
+                                                                                         "framework":  "CIS",
+                                                                                         "controlId":  "1.2.5",
+                                                                                         "sourceRef":  "CIS_Cisco_IOS_XE_17.x_Benchmark_v2.2.1.pdf §1.2.5"
+                                                                                     },
+                                                                                     {
+                                                                                         "framework":  "NIST-800-53",
+                                                                                         "controlId":  "AC-4",
+                                                                                         "sourceRef":  "NIST SP 800-53 rev5, via CCI-001368"
+                                                                                     },
+                                                                                     {
+                                                                                         "framework":  "DISA-STIG",
+                                                                                         "controlId":  "V-215812",
+                                                                                         "sourceRef":  "U_Cisco_IOS-XE_Router_NDM_STIG_V3R7_Manual-xccdf.xml, Cisco IOS XE Router NDM STIG V3R7"
+                                                                                     }
+                                                                                 ],
+                                                           "status":  "manually mapped, pending SME review"
+                                                       },
+                                                       {
+                                                           "common_rule_id":  "COMMON-INT-001",
+                                                           "vendor_rule_id":  "CISCO-INT-001",
+                                                           "configuration_evidence":  [
+                                                                                          "interface",
+                                                                                          "shutdown",
+                                                                                          "description",
+                                                                                          "switchport"
+                                                                                      ],
+                                                           "check_focus":  [
+                                                                               "unused interfaces",
+                                                                               "administrative shutdown",
+                                                                               "access/trunk classification"
+                                                                           ],
+                                                           "frameworkMappings":  [
+                                                                                     {
+                                                                                         "framework":  "NIST-800-53",
+                                                                                         "controlId":  "AC-4",
+                                                                                         "sourceRef":  "NIST SP 800-53 rev5, via CCI-001414"
+                                                                                     },
+                                                                                     {
+                                                                                         "framework":  "DISA-STIG",
+                                                                                         "controlId":  "V-216646",
+                                                                                         "sourceRef":  "U_Cisco_IOS-XE_Router_RTR_STIG_V3R5_Manual-xccdf.xml, Cisco IOS XE Router RTR STIG V3R5"
+                                                                                     }
+                                                                                 ],
+                                                           "mappingNotes":  "CIS benchmark Cisco IOS XE 17.x contains no dedicated section for disabling unused interfaces; mapped to DISA-STIG V-216646 and NIST SP 800-53 AC-4 via CCI-001414.",
+                                                           "status":  "prototype"
+                                                       },
+                                                       {
+                                                           "common_rule_id":  "COMMON-ROUTING-001",
+                                                           "vendor_rule_id":  "CISCO-ROUTING-001",
+                                                           "configuration_evidence":  [
+                                                                                          "router bgp",
+                                                                                          "neighbor password",
+                                                                                          "neighbor key",
+                                                                                          "router ospf",
+                                                                                          "area authentication"
+                                                                                      ],
+                                                           "check_focus":  [
+                                                                               "peer restrictions",
+                                                                               "routing authentication",
+                                                                               "approved neighbors"
+                                                                           ],
+                                                           "frameworkMappings":  [
+                                                                                     {
+                                                                                         "framework":  "CIS",
+                                                                                         "controlId":  "3.3.3.1",
+                                                                                         "sourceRef":  "CIS_Cisco_IOS_XE_17.x_Benchmark_v2.2.1.pdf §3.3.3.1"
+                                                                                     },
+                                                                                     {
+                                                                                         "framework":  "NIST-800-53",
+                                                                                         "controlId":  "IA-7",
+                                                                                         "sourceRef":  "NIST SP 800-53 rev5, via CCI-000803"
+                                                                                     },
+                                                                                     {
+                                                                                         "framework":  "DISA-STIG",
+                                                                                         "controlId":  "V-216645",
+                                                                                         "sourceRef":  "U_Cisco_IOS-XE_Router_RTR_STIG_V3R5_Manual-xccdf.xml, Cisco IOS XE Router RTR STIG V3R5"
+                                                                                     }
+                                                                                 ],
+                                                           "status":  "manually mapped, pending SME review"
+                                                       },
+                                                       {
+                                                           "common_rule_id":  "COMMON-STP-001",
+                                                           "vendor_rule_id":  "CISCO-STP-001",
+                                                           "configuration_evidence":  [
+                                                                                          "spanning-tree portfast",
+                                                                                          "spanning-tree bpduguard enable",
+                                                                                          "spanning-tree guard root",
+                                                                                          "spanning-tree guard loop"
+                                                                                      ],
+                                                           "check_focus":  [
+                                                                               "edge-port protection",
+                                                                               "BPDU Guard",
+                                                                               "Root Guard",
+                                                                               "Loop Guard"
+                                                                           ],
+                                                           "frameworkMappings":  [
+                                                                                     {
+                                                                                         "framework":  "NIST-800-53",
+                                                                                         "controlId":  "SC-5 a",
+                                                                                         "sourceRef":  "NIST SP 800-53 rev5, via CCI-002385"
+                                                                                     },
+                                                                                     {
+                                                                                         "framework":  "DISA-STIG",
+                                                                                         "controlId":  "V-220656",
+                                                                                         "sourceRef":  "U_Cisco_IOS-XE_Switch_L2S_STIG_V3R2_Manual-xccdf.xml, Cisco IOS XE Switch L2S STIG V3R2"
+                                                                                     }
+                                                                                 ],
+                                                           "mappingNotes":  "STP (Spanning-Tree Protocol / BPDU Guard / Root Guard / Loop Guard) is a Layer 2 Switch feature covered in DISA STIG Switch L2S V-220656 (CCI-002385 / NIST SC-5 a); it is not present in the CIS Cisco IOS XE 17.x Router Benchmark.",
+                                                           "status":  "prototype"
+                                                       },
+                                                       {
+                                                           "common_rule_id":  "COMMON-MGMT-001",
+                                                           "vendor_rule_id":  "CISCO-MGMT-001",
+                                                           "configuration_evidence":  [
+                                                                                          "vrf definition",
+                                                                                          "vrf forwarding",
+                                                                                          "ip http access-class",
+                                                                                          "transport input ssh",
+                                                                                          "access-class"
+                                                                                      ],
+                                                           "check_focus":  [
+                                                                               "management VRF",
+                                                                               "management service exposure",
+                                                                               "source restrictions"
+                                                                           ],
+                                                           "frameworkMappings":  [
+                                                                                     {
+                                                                                         "framework":  "CIS",
+                                                                                         "controlId":  "1.2.5",
+                                                                                         "sourceRef":  "CIS_Cisco_IOS_XE_17.x_Benchmark_v2.2.1.pdf §1.2.5"
+                                                                                     },
+                                                                                     {
+                                                                                         "framework":  "NIST-800-53",
+                                                                                         "controlId":  "AC-4",
+                                                                                         "sourceRef":  "NIST SP 800-53 rev5, via CCI-001414"
+                                                                                     },
+                                                                                     {
+                                                                                         "framework":  "DISA-STIG",
+                                                                                         "controlId":  "V-216680",
+                                                                                         "sourceRef":  "U_Cisco_IOS-XE_Router_RTR_STIG_V3R5_Manual-xccdf.xml, Cisco IOS XE Router RTR STIG V3R5"
+                                                                                     }
+                                                                                 ],
+                                                           "mappingNotes":  "Management separation via VRF and access restrictions maps to DISA-STIG V-216680 (separate IGP/VRF for OOBM) and CIS §1.2.5 (VTY access restrictions).",
+                                                           "status":  "manually mapped, pending SME review"
+                                                       }
+                                                   ]
+                                     },
+                    "Juniper Junos":  {
+                                          "vendor":  "Juniper",
+                                          "operating_system":  "Junos",
+                                          "rules":  [
+                                                        {
+                                                            "common_rule_id":  "COMMON-SSH-001",
+                                                            "vendor_rule_id":  "JUNOS-SSH-001",
+                                                            "configuration_evidence":  [
+                                                                                           "set system services ssh",
+                                                                                           "protocol-version",
+                                                                                           "connection-limit",
+                                                                                           "rate-limit"
+                                                                                       ],
+                                                            "check_focus":  [
+                                                                                "SSH protocol",
+                                                                                "SSH service exposure",
+                                                                                "connection restrictions"
+                                                                            ],
+                                                            "status":  "prototype"
+                                                        },
+                                                        {
+                                                            "common_rule_id":  "COMMON-AAA-001",
+                                                            "vendor_rule_id":  "JUNOS-AAA-001",
+                                                            "configuration_evidence":  [
+                                                                                           "set system authentication-order",
+                                                                                           "set system login user",
+                                                                                           "set system tacplus-server",
+                                                                                           "set system radius-server"
+                                                                                       ],
+                                                            "check_focus":  [
+                                                                                "authentication order",
+                                                                                "local users",
+                                                                                "TACACS+",
+                                                                                "RADIUS"
+                                                                            ],
+                                                            "status":  "prototype"
+                                                        },
+                                                        {
+                                                            "common_rule_id":  "COMMON-NTP-001",
+                                                            "vendor_rule_id":  "JUNOS-NTP-001",
+                                                            "configuration_evidence":  [
+                                                                                           "set system ntp server",
+                                                                                           "set system ntp boot-server",
+                                                                                           "set system ntp authentication-key",
+                                                                                           "set system ntp trusted-key"
+                                                                                       ],
+                                                            "check_focus":  [
+                                                                                "NTP server",
+                                                                                "NTP authentication",
+                                                                                "trusted keys"
+                                                                            ],
+                                                            "status":  "prototype"
+                                                        },
+                                                        {
+                                                            "common_rule_id":  "COMMON-LOG-001",
+                                                            "vendor_rule_id":  "JUNOS-LOG-001",
+                                                            "configuration_evidence":  [
+                                                                                           "set system syslog host",
+                                                                                           "set system syslog file",
+                                                                                           "set system syslog console",
+                                                                                           "set system syslog time-format"
+                                                                                       ],
+                                                            "check_focus":  [
+                                                                                "remote syslog",
+                                                                                "local logging",
+                                                                                "log severity",
+                                                                                "timestamp format"
+                                                                            ],
+                                                            "status":  "prototype"
+                                                        },
+                                                        {
+                                                            "common_rule_id":  "COMMON-SNMP-001",
+                                                            "vendor_rule_id":  "JUNOS-SNMP-001",
+                                                            "configuration_evidence":  [
+                                                                                           "set snmp community",
+                                                                                           "set snmp v3",
+                                                                                           "set snmp usm",
+                                                                                           "set snmp client-list"
+                                                                                       ],
+                                                            "check_focus":  [
+                                                                                "SNMP version",
+                                                                                "community restrictions",
+                                                                                "SNMPv3",
+                                                                                "authorized clients"
+                                                                            ],
+                                                            "status":  "prototype"
+                                                        },
+                                                        {
+                                                            "common_rule_id":  "COMMON-ACL-001",
+                                                            "vendor_rule_id":  "JUNOS-ACL-001",
+                                                            "configuration_evidence":  [
+                                                                                           "set firewall family inet filter",
+                                                                                           "set firewall family inet6 filter",
+                                                                                           "set system services ssh",
+                                                                                           "set system services web-management"
+                                                                                       ],
+                                                            "check_focus":  [
+                                                                                "firewall filters",
+                                                                                "management access restrictions",
+                                                                                "service protection"
+                                                                            ],
+                                                            "status":  "prototype"
+                                                        },
+                                                        {
+                                                            "common_rule_id":  "COMMON-INT-001",
+                                                            "vendor_rule_id":  "JUNOS-INT-001",
+                                                            "configuration_evidence":  [
+                                                                                           "set interfaces",
+                                                                                           "disable",
+                                                                                           "unit",
+                                                                                           "family ethernet-switching"
+                                                                                       ],
+                                                            "check_focus":  [
+                                                                                "disabled interfaces",
+                                                                                "interface role",
+                                                                                "switching configuration"
+                                                                            ],
+                                                            "status":  "prototype"
+                                                        },
+                                                        {
+                                                            "common_rule_id":  "COMMON-ROUTING-001",
+                                                            "vendor_rule_id":  "JUNOS-ROUTING-001",
+                                                            "configuration_evidence":  [
+                                                                                           "set protocols bgp",
+                                                                                           "authentication-key",
+                                                                                           "set protocols ospf",
+                                                                                           "authentication"
+                                                                                       ],
+                                                            "check_focus":  [
+                                                                                "routing peers",
+                                                                                "BGP authentication",
+                                                                                "OSPF authentication"
+                                                                            ],
+                                                            "status":  "prototype"
+                                                        },
+                                                        {
+                                                            "common_rule_id":  "COMMON-STP-001",
+                                                            "vendor_rule_id":  "JUNOS-STP-001",
+                                                            "configuration_evidence":  [
+                                                                                           "set protocols rstp",
+                                                                                           "set protocols mstp",
+                                                                                           "bpdu-block",
+                                                                                           "edge"
+                                                                                       ],
+                                                            "check_focus":  [
+                                                                                "STP mode",
+                                                                                "edge interfaces",
+                                                                                "BPDU protection"
+                                                                            ],
+                                                            "status":  "prototype"
+                                                        },
+                                                        {
+                                                            "common_rule_id":  "COMMON-MGMT-001",
+                                                            "vendor_rule_id":  "JUNOS-MGMT-001",
+                                                            "configuration_evidence":  [
+                                                                                           "set routing-instances",
+                                                                                           "instance-type virtual-router",
+                                                                                           "set interfaces fxp0",
+                                                                                           "set system services ssh"
+                                                                                       ],
+                                                            "check_focus":  [
+                                                                                "management routing instance",
+                                                                                "management interface",
+                                                                                "service exposure"
+                                                                            ],
+                                                            "status":  "prototype"
+                                                        }
+                                                    ]
+                                      },
+                    "Arista EOS":  {
+                                       "vendor":  "Arista",
+                                       "operating_system":  "EOS",
+                                       "rules":  [
+                                                     {
+                                                         "common_rule_id":  "COMMON-SSH-001",
+                                                         "vendor_rule_id":  "ARISTA-SSH-001",
+                                                         "configuration_evidence":  [
+                                                                                        "management ssh",
+                                                                                        "authentication protocol public-key",
+                                                                                        "keyboard-interactive",
+                                                                                        "authentication x509"
+                                                                                    ],
+                                                         "check_focus":  [
+                                                                             "SSH authentication",
+                                                                             "approved authentication methods",
+                                                                             "management security"
+                                                                         ],
+                                                         "status":  "prototype"
+                                                     },
+                                                     {
+                                                         "common_rule_id":  "COMMON-AAA-001",
+                                                         "vendor_rule_id":  "ARISTA-AAA-001",
+                                                         "configuration_evidence":  [
+                                                                                        "aaa authentication",
+                                                                                        "aaa authorization",
+                                                                                        "aaa accounting",
+                                                                                        "tacacs+",
+                                                                                        "radius"
+                                                                                    ],
+                                                         "check_focus":  [
+                                                                             "authentication",
+                                                                             "authorization",
+                                                                             "accounting",
+                                                                             "centralized authentication"
+                                                                         ],
+                                                         "status":  "prototype"
+                                                     },
+                                                     {
+                                                         "common_rule_id":  "COMMON-NTP-001",
+                                                         "vendor_rule_id":  "ARISTA-NTP-001",
+                                                         "configuration_evidence":  [
+                                                                                        "ntp server",
+                                                                                        "ntp authenticate",
+                                                                                        "ntp trusted-key",
+                                                                                        "clock timezone"
+                                                                                    ],
+                                                         "check_focus":  [
+                                                                             "NTP server",
+                                                                             "NTP authentication",
+                                                                             "timezone",
+                                                                             "time verification"
+                                                                         ],
+                                                         "status":  "prototype"
+                                                     },
+                                                     {
+                                                         "common_rule_id":  "COMMON-LOG-001",
+                                                         "vendor_rule_id":  "ARISTA-LOG-001",
+                                                         "configuration_evidence":  [
+                                                                                        "logging host",
+                                                                                        "logging buffered",
+                                                                                        "logging console",
+                                                                                        "logging trap"
+                                                                                    ],
+                                                         "check_focus":  [
+                                                                             "remote logging",
+                                                                             "local buffer",
+                                                                             "severity",
+                                                                             "event visibility"
+                                                                         ],
+                                                         "status":  "prototype"
+                                                     },
+                                                     {
+                                                         "common_rule_id":  "COMMON-SNMP-001",
+                                                         "vendor_rule_id":  "ARISTA-SNMP-001",
+                                                         "configuration_evidence":  [
+                                                                                        "snmp-server community",
+                                                                                        "snmp-server group",
+                                                                                        "snmp-server user",
+                                                                                        "snmp-server host"
+                                                                                    ],
+                                                         "check_focus":  [
+                                                                             "SNMP version",
+                                                                             "community security",
+                                                                             "authorized monitoring hosts"
+                                                                         ],
+                                                         "status":  "prototype"
+                                                     },
+                                                     {
+                                                         "common_rule_id":  "COMMON-ACL-001",
+                                                         "vendor_rule_id":  "ARISTA-ACL-001",
+                                                         "configuration_evidence":  [
+                                                                                        "ip access-list",
+                                                                                        "ipv6 access-list",
+                                                                                        "mac access-list",
+                                                                                        "ip access-group"
+                                                                                    ],
+                                                         "check_focus":  [
+                                                                             "IPv4 ACL",
+                                                                             "IPv6 ACL",
+                                                                             "MAC ACL",
+                                                                             "ACL application"
+                                                                         ],
+                                                         "status":  "prototype"
+                                                     },
+                                                     {
+                                                         "common_rule_id":  "COMMON-INT-001",
+                                                         "vendor_rule_id":  "ARISTA-INT-001",
+                                                         "configuration_evidence":  [
+                                                                                        "interface",
+                                                                                        "shutdown",
+                                                                                        "switchport mode access",
+                                                                                        "switchport mode trunk"
+                                                                                    ],
+                                                         "check_focus":  [
+                                                                             "unused interfaces",
+                                                                             "access/trunk classification",
+                                                                             "interface state"
+                                                                         ],
+                                                         "status":  "prototype"
+                                                     },
+                                                     {
+                                                         "common_rule_id":  "COMMON-ROUTING-001",
+                                                         "vendor_rule_id":  "ARISTA-ROUTING-001",
+                                                         "configuration_evidence":  [
+                                                                                        "router bgp",
+                                                                                        "neighbor password",
+                                                                                        "router ospf",
+                                                                                        "message-digest"
+                                                                                    ],
+                                                         "check_focus":  [
+                                                                             "BGP peers",
+                                                                             "BGP authentication",
+                                                                             "OSPF authentication"
+                                                                         ],
+                                                         "status":  "prototype"
+                                                     },
+                                                     {
+                                                         "common_rule_id":  "COMMON-STP-001",
+                                                         "vendor_rule_id":  "ARISTA-STP-001",
+                                                         "configuration_evidence":  [
+                                                                                        "spanning-tree",
+                                                                                        "spanning-tree portfast",
+                                                                                        "spanning-tree bpduguard",
+                                                                                        "spanning-tree guard"
+                                                                                    ],
+                                                         "check_focus":  [
+                                                                             "STP mode",
+                                                                             "edge-port protection",
+                                                                             "BPDU protection"
+                                                                         ],
+                                                         "status":  "prototype"
+                                                     },
+                                                     {
+                                                         "common_rule_id":  "COMMON-MGMT-001",
+                                                         "vendor_rule_id":  "ARISTA-MGMT-001",
+                                                         "configuration_evidence":  [
+                                                                                        "vrf instance",
+                                                                                        "vrf MGMT",
+                                                                                        "interface Management1",
+                                                                                        "management ssh",
+                                                                                        "management security"
+                                                                                    ],
+                                                         "check_focus":  [
+                                                                             "management VRF",
+                                                                             "management interface",
+                                                                             "management service exposure",
+                                                                             "routing-context separation"
+                                                                         ],
+                                                         "status":  "prototype"
+                                                     }
+                                                 ]
+                                   }
+                }
+}

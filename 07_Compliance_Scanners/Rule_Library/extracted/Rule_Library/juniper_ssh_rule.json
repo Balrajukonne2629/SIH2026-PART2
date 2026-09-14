@@ -1,0 +1,35 @@
+{
+  "rule_id": "JUNOS-SSH-001",
+  "title": "Require secure SSH protocol version",
+  "description": "Juniper Junos devices should use the approved secure SSH protocol version.",
+  "framework": "Organizational Security Policy",
+  "framework_control_id": "REMOTE-ACCESS-SSH",
+  "vendor": "Juniper",
+  "operating_system": "Junos",
+  "severity": "high",
+  "category": "SSH",
+  "check_type": "value",
+  "applicability": {
+    "requires": [
+      "Junos configuration",
+      "SSH service is enabled"
+    ]
+  },
+  "expected_configuration": {
+    "ssh_protocol_version": "approved-version"
+  },
+  "evidence_pattern": [
+    "set system services ssh",
+    "protocol-version"
+  ],
+  "compliance_logic": {
+    "type": "vendor_specific",
+    "description": "Evaluate the Junos SSH protocol configuration using the syntax supported by the target Junos release."
+  },
+  "remediation": "Configure the approved SSH protocol version using Junos syntax.",
+  "references": [
+    "Juniper Junos SSH documentation"
+  ],
+  "confidence": "medium",
+  "validation_status": "unvalidated"
+}

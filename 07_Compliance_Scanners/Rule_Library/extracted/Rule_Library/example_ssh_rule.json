@@ -1,0 +1,44 @@
+{
+  "rule_id": "COMMON-SSH-001",
+  "title": "Use secure remote administration",
+  "description": "Remote administrative access must use an approved secure SSH configuration.",
+  "framework": "Organizational Security Policy",
+  "framework_control_id": "REMOTE-ACCESS-SSH",
+  "vendor": "common",
+  "operating_system": "common",
+  "severity": "high",
+  "category": "SSH",
+  "check_type": "contextual",
+  "applicability": {
+    "requires": [
+      "Remote administrative access is enabled"
+    ]
+  },
+  "expected_configuration": {
+    "secure_protocol": true,
+    "approved_authentication": true,
+    "management_access_restricted": true
+  },
+  "disallowed_configuration": {
+    "insecure_remote_protocol": true,
+    "unrestricted_management_access": true,
+    "weak_authentication": true
+  },
+  "evidence_pattern": [
+    "ssh",
+    "management ssh",
+    "authentication",
+    "access restriction"
+  ],
+  "compliance_logic": {
+    "type": "contextual",
+    "description": "Evaluate SSH protocol, authentication method, and management-access restrictions together. Do not determine compliance from a single keyword."
+  },
+  "remediation": "Configure approved secure SSH authentication and restrict management access to authorized administrative networks.",
+  "references": [
+    "Vendor-specific SSH documentation",
+    "Organizational remote-access policy"
+  ],
+  "confidence": "medium",
+  "validation_status": "unvalidated"
+}

@@ -1,0 +1,12 @@
+{
+  "CISCO-SSH-001": "Pass",
+  "CISCO-AAA-001": "Pass",
+  "CISCO-NTP-001": "Fail",
+  "CISCO-LOG-001": "Pass",
+  "CISCO-SNMP-001": "Fail",
+  "CISCO-ACL-001": "Pass",
+  "CISCO-INT-001": "Pass",
+  "CISCO-ROUTING-001": "Pass",
+  "CISCO-STP-001": "Unknown",
+  "CISCO-MGMT-001": "Pass"
+}

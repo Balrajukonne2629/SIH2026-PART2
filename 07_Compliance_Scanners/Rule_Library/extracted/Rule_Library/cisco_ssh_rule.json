@@ -1,0 +1,39 @@
+{
+  "rule_id": "CISCO-SSH-001",
+  "title": "Require SSH version 2",
+  "description": "Cisco IOS-XE devices should use SSH version 2 for secure remote administration.",
+  "framework": "CIS",
+  "framework_control_id": "To-be-mapped",
+  "vendor": "Cisco",
+  "operating_system": "IOS-XE",
+  "severity": "high",
+  "category": "SSH",
+  "check_type": "value",
+  "applicability": {
+    "requires": [
+      "Cisco IOS-XE configuration",
+      "SSH service is enabled"
+    ]
+  },
+  "expected_configuration": {
+    "ssh_version": "2"
+  },
+  "disallowed_configuration": {
+    "ssh_version": "1"
+  },
+  "evidence_pattern": [
+    "ip ssh version 2",
+    "ip ssh version 1"
+  ],
+  "compliance_logic": {
+    "type": "value",
+    "pass_if": "ip ssh version 2 is present and no conflicting SSH version setting is active"
+  },
+  "remediation": "Configure SSH version 2 and remove obsolete SSH version settings.",
+  "references": [
+    "Cisco IOS-XE documentation",
+    "Applicable CIS benchmark control"
+  ],
+  "confidence": "high",
+  "validation_status": "unvalidated"
+}

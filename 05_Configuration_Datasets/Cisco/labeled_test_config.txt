@@ -1,0 +1,73 @@
+! Labeled Reference Configuration - Cisco IOS-XE
+! System and Platform Identification
+hostname EDGE-RTR-01
+!
+! Management Plane Isolation (CISCO-MGMT-001 -> Pass)
+vrf definition Mgmt-intf
+ description Dedicated Management Network
+ address-family ipv4
+ exit-address-family
+!
+! Administrative Authentication & AAA Security (CISCO-AAA-001 -> Pass)
+aaa new-model
+aaa authentication login default group tacacs+ local
+aaa authorization exec default group tacacs+ local
+aaa accounting exec default start-stop group tacacs+
+!
+! Secure Remote Administration (CISCO-SSH-001 -> Pass)
+ip ssh version 2
+ip ssh time-out 60
+ip ssh authentication-retries 3
+!
+! Security Event Logging (CISCO-LOG-001 -> Pass)
+service timestamps log datetime msec
+logging buffered 64000
+logging trap informational
+logging host 10.10.10.50
+!
+! Approved Time Source (CISCO-NTP-001 -> Fail: server configured without authentication)
+ntp server 192.168.100.1
+no ntp authenticate
+!
+! Network Monitoring Access (CISCO-SNMP-001 -> Fail: insecure SNMPv1/v2c plaintext community string)
+snmp-server community public RO
+!
+! Access Control Lists (CISCO-ACL-001 -> Pass)
+ip access-list standard MGMT-ACCESS
+ permit 10.10.0.0 0.0.255.255
+ deny any
+!
+! Interface Hardening (CISCO-INT-001 -> Pass: unused port administratively shut down)
+interface GigabitEthernet0/0/0
+ description WAN-Uplink
+ ip address 192.0.2.1 255.255.255.252
+ no shutdown
+!
+interface GigabitEthernet0/0/1
+ description Unused-Interface-1
+ shutdown
+!
+interface GigabitEthernet0
+ description Out-of-Band Management
+ vrf forwarding Mgmt-intf
+ ip address 10.255.255.1 255.255.255.0
+ no shutdown
+!
+! Routing Protocol Security (CISCO-ROUTING-001 -> Pass: BGP peer with authentication)
+router bgp 65000
+ neighbor 192.0.2.2 remote-as 65000
+ neighbor 192.0.2.2 password 7 BGPSecretAuthKey123!
+!
+! Management Service Restrictions (CISCO-MGMT-001 & CISCO-ACL-001)
+ip http access-class MGMT-ACCESS
+!
+! VTY Lines Configuration (CISCO-SSH-001 & CISCO-ACL-001)
+line vty 0 4
+ access-class MGMT-ACCESS in
+ transport input ssh
+ login authentication default
+!
+! Deliberately unmapped CLI line not covered by any of the 10 rules (for AI-flow testing)
+service call-home
+!
+end

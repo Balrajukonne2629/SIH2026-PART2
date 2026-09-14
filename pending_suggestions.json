@@ -1,0 +1,58 @@
+[
+  {
+    "suggestion_id": "b50ed4b8c5c4bdde",
+    "timestamp": "2026-09-14T10:09:20.208821+00:00",
+    "status": "approve_with_correction",
+    "suggestion": {
+      "raw_line": "service call-home",
+      "suggested_rule_id": null,
+      "suggested_new_rule": {
+        "internalTitle": "Disable unneeded diagnostic and telemetry services (Call Home)",
+        "csmFieldChecked": "csm.services.call_home",
+        "condition": "equals False"
+      },
+      "confidence": 0.88,
+      "rationale": "The command 'service call-home' enables automated diagnostic telemetry. CIS and DISA STIG benchmarks require disabling unnecessary outbound reporting services.",
+      "framework_hints": [
+        {
+          "framework": "CIS",
+          "possible_control_id": "CIS-1.4.1"
+        },
+        {
+          "framework": "DISA-STIG",
+          "possible_control_id": "V-215849"
+        }
+      ]
+    },
+    "reviewed_by": "SecOps_Lead_Reviewer",
+    "reviewed_at": "2026-09-14T10:09:20.503051+00:00"
+  },
+  {
+    "suggestion_id": "f25d03406bcbf130",
+    "timestamp": "2026-09-14T10:09:20.461984+00:00",
+    "status": "rejected",
+    "suggestion": {
+      "raw_line": "banner motd ^C Unauthorized ^C",
+      "suggested_rule_id": null,
+      "suggested_new_rule": {
+        "internalTitle": "Configure legal warning banner",
+        "csmFieldChecked": "csm.management.banner",
+        "condition": "not_null"
+      },
+      "confidence": 0.65,
+      "rationale": "Banner statement detected, but exact delimiter or text requires human review.",
+      "framework_hints": [
+        {
+          "framework": "CIS",
+          "possible_control_id": "CIS-1.2.1"
+        },
+        {
+          "framework": "DISA-STIG",
+          "possible_control_id": "V-215850"
+        }
+      ]
+    },
+    "reviewed_by": "SecOps_Lead_Reviewer",
+    "reviewed_at": "2026-09-14T10:09:20.487572+00:00"
+  }
+]

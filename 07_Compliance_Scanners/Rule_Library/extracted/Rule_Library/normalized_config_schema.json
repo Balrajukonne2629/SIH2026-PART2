@@ -1,0 +1,452 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sih26155.local/schemas/normalized-config-schema.json",
+  "title": "Vendor-Neutral Network Configuration Schema",
+  "description": "Common intermediate representation for Cisco IOS-XE, Juniper Junos, and Arista EOS configurations.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "device",
+    "source",
+    "interfaces",
+    "services",
+    "aaa",
+    "logging",
+    "ntp",
+    "snmp",
+    "access_control",
+    "routing",
+    "management"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "device": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "hostname",
+        "vendor",
+        "platform"
+      ],
+      "properties": {
+        "hostname": {
+          "type": "string"
+        },
+        "vendor": {
+          "type": "string",
+          "enum": [
+            "cisco",
+            "juniper",
+            "arista",
+            "unknown"
+          ]
+        },
+        "platform": {
+          "type": "string"
+        },
+        "os_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "serial_number": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "management_ip": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "source_type",
+        "parser"
+      ],
+      "properties": {
+        "source_type": {
+          "type": "string",
+          "enum": [
+            "running_config",
+            "startup_config",
+            "backup_config",
+            "uploaded_file",
+            "api_export",
+            "unknown"
+          ]
+        },
+        "file_name": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "parser": {
+          "type": "string"
+        },
+        "parser_version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "parsed_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    },
+    "interfaces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "name",
+          "enabled"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "ip_addresses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "switchport": {
+            "type": "boolean"
+          },
+          "access_vlan": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "trunk": {
+            "type": "boolean"
+          },
+          "native_vlan": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "allowed_vlans": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "shutdown": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "services": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "telnet": {
+          "type": "boolean"
+        },
+        "ssh": {
+          "type": "boolean"
+        },
+        "ssh_version": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "http": {
+          "type": "boolean"
+        },
+        "https": {
+          "type": "boolean"
+        },
+        "ftp": {
+          "type": "boolean"
+        },
+        "cdp_or_lldp": {
+          "type": "boolean"
+        },
+        "finger": {
+          "type": "boolean"
+        }
+      }
+    },
+    "aaa": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "authentication_method": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "authorization_enabled": {
+          "type": "boolean"
+        },
+        "accounting_enabled": {
+          "type": "boolean"
+        },
+        "local_user_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "radius_enabled": {
+          "type": "boolean"
+        },
+        "tacacs_enabled": {
+          "type": "boolean"
+        },
+        "password_encryption": {
+          "type": "boolean"
+        }
+      }
+    },
+    "logging": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "remote_logging_enabled": {
+          "type": "boolean"
+        },
+        "remote_servers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "console_logging_enabled": {
+          "type": "boolean"
+        },
+        "buffered_logging_enabled": {
+          "type": "boolean"
+        },
+        "timestamps_enabled": {
+          "type": "boolean"
+        },
+        "severity_level": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "ntp": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "servers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "authentication_enabled": {
+          "type": "boolean"
+        },
+        "synchronized": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        }
+      }
+    },
+    "snmp": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "read_only": {
+          "type": "boolean"
+        },
+        "communities_present": {
+          "type": "boolean"
+        },
+        "community_strings_encrypted": {
+          "type": "boolean"
+        },
+        "snmpv3_users_present": {
+          "type": "boolean"
+        },
+        "trap_enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "access_control": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "acls_present": {
+          "type": "boolean"
+        },
+        "inbound_acl_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "outbound_acl_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "implicit_deny_present": {
+          "type": "boolean"
+        },
+        "management_acl_present": {
+          "type": "boolean"
+        },
+        "control_plane_protection_enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "routing": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "static_routes_present": {
+          "type": "boolean"
+        },
+        "ospf_enabled": {
+          "type": "boolean"
+        },
+        "bgp_enabled": {
+          "type": "boolean"
+        },
+        "eigrp_enabled": {
+          "type": "boolean"
+        },
+        "isis_enabled": {
+          "type": "boolean"
+        },
+        "rip_enabled": {
+          "type": "boolean"
+        },
+        "routing_protocols": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "routing_authentication_enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "management": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "management_protocol": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "management_vrf_enabled": {
+          "type": "boolean"
+        },
+        "login_banner_present": {
+          "type": "boolean"
+        },
+        "motd_banner_present": {
+          "type": "boolean"
+        },
+        "exec_timeout_configured": {
+          "type": "boolean"
+        },
+        "password_policy_configured": {
+          "type": "boolean"
+        },
+        "privilege_separation_enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "raw_evidence": {
+      "type": "array",
+      "description": "Original configuration lines supporting normalized fields and compliance decisions.",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "field",
+          "value",
+          "source_lines"
+        ],
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "value": {},
+          "source_lines": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        }
+      }
+    },
+    "parser_warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,182 @@
+{
+  "schema_version": "1.0",
+  "device": {
+    "hostname": "EDGE-RTR-01",
+    "vendor": "cisco",
+    "platform": "IOS-XE",
+    "os_version": "17.9.4",
+    "serial_number": null,
+    "management_ip": "192.168.10.1"
+  },
+  "source": {
+    "source_type": "running_config",
+    "file_name": "sample_cisco_iosxe.conf",
+    "parser": "cisco_iosxe_parser",
+    "parser_version": "0.1.0",
+    "parsed_at": "2026-09-13T10:00:00Z"
+  },
+  "interfaces": [
+    {
+      "name": "GigabitEthernet0/0",
+      "description": "WAN Uplink",
+      "enabled": true,
+      "ip_addresses": [
+        "203.0.113.2/30"
+      ],
+      "switchport": false,
+      "access_vlan": null,
+      "trunk": false,
+      "native_vlan": null,
+      "allowed_vlans": [],
+      "shutdown": false
+    },
+    {
+      "name": "GigabitEthernet0/1",
+      "description": "LAN Interface",
+      "enabled": true,
+      "ip_addresses": [
+        "192.168.10.1/24"
+      ],
+      "switchport": false,
+      "access_vlan": null,
+      "trunk": false,
+      "native_vlan": null,
+      "allowed_vlans": [],
+      "shutdown": false
+    }
+  ],
+  "services": {
+    "telnet": false,
+    "ssh": true,
+    "ssh_version": 2,
+    "http": false,
+    "https": true,
+    "ftp": false,
+    "cdp_or_lldp": true,
+    "finger": false
+  },
+  "aaa": {
+    "enabled": true,
+    "authentication_method": "local",
+    "authorization_enabled": true,
+    "accounting_enabled": false,
+    "local_user_count": 2,
+    "radius_enabled": false,
+    "tacacs_enabled": false,
+    "password_encryption": true
+  },
+  "logging": {
+    "enabled": true,
+    "remote_logging_enabled": true,
+    "remote_servers": [
+      "192.168.20.10"
+    ],
+    "console_logging_enabled": true,
+    "buffered_logging_enabled": true,
+    "timestamps_enabled": true,
+    "severity_level": "informational"
+  },
+  "ntp": {
+    "enabled": true,
+    "servers": [
+      "192.168.20.20",
+      "192.168.20.21"
+    ],
+    "authentication_enabled": true,
+    "synchronized": true
+  },
+  "snmp": {
+    "enabled": true,
+    "version": "3",
+    "read_only": true,
+    "communities_present": false,
+    "community_strings_encrypted": true,
+    "snmpv3_users_present": true,
+    "trap_enabled": true
+  },
+  "access_control": {
+    "acls_present": true,
+    "inbound_acl_count": 2,
+    "outbound_acl_count": 1,
+    "implicit_deny_present": true,
+    "management_acl_present": true,
+    "control_plane_protection_enabled": true
+  },
+  "routing": {
+    "static_routes_present": true,
+    "ospf_enabled": true,
+    "bgp_enabled": false,
+    "eigrp_enabled": false,
+    "isis_enabled": false,
+    "rip_enabled": false,
+    "routing_protocols": [
+      "static",
+      "ospf"
+    ],
+    "routing_authentication_enabled": true
+  },
+  "management": {
+    "management_protocol": "ssh",
+    "management_vrf_enabled": true,
+    "login_banner_present": true,
+    "motd_banner_present": true,
+    "exec_timeout_configured": true,
+    "password_policy_configured": true,
+    "privilege_separation_enabled": true
+  },
+  "raw_evidence": [
+    {
+      "field": "services.ssh",
+      "value": true,
+      "source_lines": [
+        "ip ssh version 2",
+        "line vty 0 4",
+        " transport input ssh"
+      ],
+      "confidence": 0.99
+    },
+    {
+      "field": "services.telnet",
+      "value": false,
+      "source_lines": [
+        "line vty 0 4",
+        " transport input ssh"
+      ],
+      "confidence": 0.98
+    },
+    {
+      "field": "aaa.enabled",
+      "value": true,
+      "source_lines": [
+        "aaa new-model"
+      ],
+      "confidence": 0.99
+    },
+    {
+      "field": "logging.remote_logging_enabled",
+      "value": true,
+      "source_lines": [
+        "logging host 192.168.20.10"
+      ],
+      "confidence": 0.99
+    },
+    {
+      "field": "ntp.enabled",
+      "value": true,
+      "source_lines": [
+        "ntp server 192.168.20.20",
+        "ntp server 192.168.20.21"
+      ],
+      "confidence": 0.99
+    },
+    {
+      "field": "snmp.version",
+      "value": "3",
+      "source_lines": [
+        "snmp-server group SECURE v3 priv"
+      ],
+      "confidence": 0.95
+    }
+  ],
+  "parser_warnings": []
+}

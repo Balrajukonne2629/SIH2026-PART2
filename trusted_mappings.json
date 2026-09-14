@@ -1,0 +1,31 @@
+[
+  {
+    "common_rule_id": "COMMON-DIAG-001",
+    "vendor_rule_id": "CISCO-DIAG-001",
+    "internalTitle": "Disable unneeded diagnostic and telemetry services (Call Home)",
+    "csmFieldChecked": "csm.services.call_home",
+    "condition": "equals False",
+    "configuration_evidence": [
+      "service call-home"
+    ],
+    "check_focus": [
+      "Disable unneeded diagnostic and telemetry services (Call Home)"
+    ],
+    "frameworkMappings": [
+      {
+        "framework": "CIS",
+        "possible_control_id": "CIS-1.4.1"
+      },
+      {
+        "framework": "DISA-STIG",
+        "possible_control_id": "V-215849"
+      }
+    ],
+    "version_info": {
+      "version": "1.0",
+      "approved_by": "SecOps_Lead_Reviewer",
+      "approved_at": "2026-09-14T10:09:20.503051+00:00",
+      "source": "ai_suggested"
+    }
+  }
+]

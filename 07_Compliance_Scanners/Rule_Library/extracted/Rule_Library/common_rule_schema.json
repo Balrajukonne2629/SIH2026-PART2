@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "project": "SIH26155",
+  "description": "Common compliance-rule schema for a multi-vendor network security compliance auditor",
+  "rule_fields": {
+    "rule_id": "Unique rule identifier",
+    "title": "Short human-readable rule title",
+    "description": "Explanation of the security requirement",
+    "framework": "CIS, DISA-STIG, NIST, ISO-27001, or organizational policy",
+    "framework_control_id": "Original control or benchmark identifier",
+    "vendor": "Cisco, Juniper, Arista, or common",
+    "operating_system": "IOS-XE, Junos, EOS, or common",
+    "severity": "low, medium, high, or critical",
+    "category": "AAA, SSH, NTP, SNMP, logging, ACL, routing, interface, or other",
+    "check_type": "presence, absence, value, pattern, relationship, or contextual",
+    "applicability": "Conditions under which the rule applies",
+    "expected_configuration": "Expected configuration state",
+    "disallowed_configuration": "Configuration state that should be flagged",
+    "evidence_pattern": "Configuration pattern used to locate evidence",
+    "compliance_logic": "Logic used to determine the result",
+    "remediation": "Suggested corrective action",
+    "references": "Official documentation or benchmark references",
+    "confidence": "high, medium, or low",
+    "validation_status": "unvalidated, reviewed, or tested"
+  },
+  "allowed_statuses": [
+    "compliant",
+    "non_compliant",
+    "partially_compliant",
+    "not_applicable",
+    "unsupported",
+    "unable_to_determine"
+  ]
+}
