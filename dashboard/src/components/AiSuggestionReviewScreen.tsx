@@ -198,11 +198,11 @@ export const AiSuggestionReviewScreen: React.FC<AiSuggestionReviewScreenProps> =
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mr-1.5 animate-pulse"></span>
                 STATUS: PENDING HUMAN REVIEW
               </span>
-            ) : submitSuccess.status === 'approved' ? (
+            ) : (submitSuccess.status === 'approved' || submitSuccess.status === 'approve') ? (
               <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-700">
                 STATUS: APPROVED & COMMITTED TO TRUSTED RULES
               </span>
-            ) : submitSuccess.status === 'approved_with_correction' ? (
+            ) : (submitSuccess.status === 'approved_with_correction' || submitSuccess.status === 'approve_with_correction') ? (
               <span className="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-sky-950 text-sky-300 border border-sky-700">
                 STATUS: APPROVED WITH CORRECTIONS
               </span>

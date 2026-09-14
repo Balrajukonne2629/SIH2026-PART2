@@ -1,7 +1,7 @@
 [
   {
-    "suggestion_id": "471c1673a30bf5c7",
-    "timestamp": "2026-09-14T10:52:20.029768+00:00",
+    "suggestion_id": "ff1827ab148e6c16",
+    "timestamp": "2026-09-14T14:01:17.812156+00:00",
     "status": "approve_with_correction",
     "suggestion": {
       "raw_line": "service call-home",
@@ -12,7 +12,7 @@
         "condition": "equals False"
       },
       "confidence": 0.88,
-      "rationale": "The configuration line `service call-home` maps to the specified compliance rule and data field `csm.services.call_home` because it enables the diagnostic and telemetry services, which are the very services being disabled, to send calls to a call home agent.",
+      "rationale": "The CLI configuration line `service call-home` maps to the specified compliance rule and data field `csm.services.call_home` because it enables diagnostic and telemetry services for the Call Home protocol, which is used for remote monitoring and management of network devices.",
       "framework_hints": [
         {
           "framework": "CIS",
@@ -25,11 +25,11 @@
       ]
     },
     "reviewed_by": "SecOps_Lead_Reviewer",
-    "reviewed_at": "2026-09-14T10:52:28.145980+00:00"
+    "reviewed_at": "2026-09-14T14:01:25.652896+00:00"
   },
   {
-    "suggestion_id": "431d3af7642bcb54",
-    "timestamp": "2026-09-14T10:52:28.075845+00:00",
+    "suggestion_id": "f1b45a708fc3b87d",
+    "timestamp": "2026-09-14T14:01:25.593079+00:00",
     "status": "rejected",
     "suggestion": {
       "raw_line": "banner motd ^C Unauthorized ^C",
@@ -40,7 +40,7 @@
         "condition": "not_null"
       },
       "confidence": 0.65,
-      "rationale": "This CLI configuration line maps to the specified compliance rule and data field because it specifies a banner with the text \"Unauthorized\" and \"C\" (indicating the end of the banner) at the beginning and end of the string, respectively, in a line that is displayed to the user with the \"csm.management\" command set in the banner.",
+      "rationale": "The CLI configuration line `banner motd ^C Unauthorized ^C` maps to the specified compliance rule and data field because the `banner` command is used to display the message to the user before they log in, and the `motd` (Message of the Day) field is used to display the banner message, which is exactly what this line displays.",
       "framework_hints": [
         {
           "framework": "CIS",
@@ -53,6 +53,506 @@
       ]
     },
     "reviewed_by": "SecOps_Lead_Reviewer",
-    "reviewed_at": "2026-09-14T10:52:28.115156+00:00"
+    "reviewed_at": "2026-09-14T14:01:25.626713+00:00"
+  },
+  {
+    "suggestion_id": "94714df5e9c667bc",
+    "timestamp": "2026-09-14T14:01:49.212609+00:00",
+    "status": "approve_with_correction",
+    "suggestion": {
+      "raw_line": "service call-home",
+      "suggested_rule_id": null,
+      "suggested_new_rule": {
+        "internalTitle": "Disable unneeded diagnostic and telemetry services (Call Home)",
+        "csmFieldChecked": "csm.services.call_home",
+        "condition": "equals False"
+      },
+      "confidence": 0.88,
+      "rationale": "This CLI configuration line maps to the specified compliance rule and data field because the `service call-home` command is used to disable a diagnostic and telemetry service, which is specified in the `csm.services.call_home` target field.",
+      "framework_hints": [
+        {
+          "framework": "CIS",
+          "possible_control_id": "CIS-1.4.1"
+        },
+        {
+          "framework": "DISA-STIG",
+          "possible_control_id": "V-215849"
+        }
+      ]
+    },
+    "reviewed_by": "SecOps_Lead_Reviewer",
+    "reviewed_at": "2026-09-14T14:01:49.240910+00:00"
+  },
+  {
+    "suggestion_id": "1598fef41a562a3f",
+    "timestamp": "2026-09-14T14:06:13.313980+00:00",
+    "status": "pending",
+    "suggestion": {
+      "raw_line": "service call-home",
+      "suggested_rule_id": null,
+      "suggested_new_rule": {
+        "internalTitle": "Disable unneeded diagnostic and telemetry services (Call Home)",
+        "csmFieldChecked": "csm.services.call_home",
+        "condition": "equals False"
+      },
+      "confidence": 0.88,
+      "rationale": "The CLI configuration line `service call-home` maps to the specified compliance rule \"Disable unneeded diagnostic and telemetry services (Call Home)\" because this line specifies disabling a specific diagnostic service, which is a key component of the Call Home service.",
+      "framework_hints": [
+        {
+          "framework": "CIS",
+          "possible_control_id": "CIS-1.4.1"
+        },
+        {
+          "framework": "DISA-STIG",
+          "possible_control_id": "V-215849"
+        }
+      ]
+    }
+  },
+  {
+    "suggestion_id": "36fdeadde6c30bd3",
+    "timestamp": "2026-09-14T14:06:17.322602+00:00",
+    "status": "approve_with_correction",
+    "suggestion": {
+      "raw_line": "service call-home",
+      "suggested_rule_id": null,
+      "suggested_new_rule": {
+        "internalTitle": "Disable unneeded diagnostic and telemetry services (Call Home)",
+        "csmFieldChecked": "csm.services.call_home",
+        "condition": "equals False"
+      },
+      "confidence": 0.88,
+      "rationale": "The specified CLI configuration line maps to the specified compliance rule and data field because it disables the diagnostic and telemetry services (csm.services.call_home) on the network device.",
+      "framework_hints": [
+        {
+          "framework": "CIS",
+          "possible_control_id": "CIS-1.4.1"
+        },
+        {
+          "framework": "DISA-STIG",
+          "possible_control_id": "V-215849"
+        }
+      ]
+    },
+    "reviewed_by": "SecOps_Lead_Reviewer",
+    "reviewed_at": "2026-09-14T14:06:25.267085+00:00"
+  },
+  {
+    "suggestion_id": "081f93ecf889ad8e",
+    "timestamp": "2026-09-14T14:29:42.867426+00:00",
+    "status": "pending",
+    "suggestion": {
+      "raw_line": "service call-home",
+      "suggested_rule_id": null,
+      "suggested_new_rule": {
+        "internalTitle": "Disable unneeded diagnostic and telemetry services (Call Home)",
+        "csmFieldChecked": "csm.services.call_home",
+        "condition": "equals False"
+      },
+      "confidence": 0.88,
+      "rationale": "The CLI configuration line `service call-home` maps to the specified compliance rule and data field because it specifies the target of the service call, which is the \"Call Home\" service, and targets the specific data field `csm.services.call_home`.",
+      "framework_hints": [
+        {
+          "framework": "CIS",
+          "possible_control_id": "CIS-1.4.1"
+        },
+        {
+          "framework": "DISA-STIG",
+          "possible_control_id": "V-215849"
+        }
+      ]
+    }
+  },
+  {
+    "suggestion_id": "6a621b827845d42e",
+    "timestamp": "2026-09-14T14:30:17.939990+00:00",
+    "status": "approve_with_correction",
+    "suggestion": {
+      "raw_line": "service call-home",
+      "suggested_rule_id": null,
+      "suggested_new_rule": {
+        "internalTitle": "Disable unneeded diagnostic and telemetry services (Call Home)",
+        "csmFieldChecked": "csm.services.call_home",
+        "condition": "equals False"
+      },
+      "confidence": 0.88,
+      "rationale": "The CLI configuration line `service call-home` maps to the specified compliance rule and data field `csm.services.call_home` because it enables or disables diagnostic and telemetry services for a specific management service. The `service call-home` keyword indicates that the management service is called-home, which is a diagnostic and telemetry service used by network devices for configuration, health, and performance management.",
+      "framework_hints": [
+        {
+          "framework": "CIS",
+          "possible_control_id": "CIS-1.4.1"
+        },
+        {
+          "framework": "DISA-STIG",
+          "possible_control_id": "V-215849"
+        }
+      ]
+    },
+    "reviewed_by": "SecOps_Lead_Reviewer",
+    "reviewed_at": "2026-09-14T14:30:26.463073+00:00"
+  },
+  {
+    "suggestion_id": "a7411747dc9d7d3d",
+    "timestamp": "2026-09-14T14:30:26.397852+00:00",
+    "status": "rejected",
+    "suggestion": {
+      "raw_line": "banner motd ^C Unauthorized ^C",
+      "suggested_rule_id": null,
+      "suggested_new_rule": {
+        "internalTitle": "Configure legal warning banner",
+        "csmFieldChecked": "csm.management.banner",
+        "condition": "not_null"
+      },
+      "confidence": 0.65,
+      "rationale": "The given CLI configuration line maps to the specified compliance rule and data field because the `banner motd` directive specifies that a message is expected to be displayed on the command line, and the `^C` character indicates a carriage return (EOF) character, which is typically returned after the message is completed. This is used to denote the end of a message and is commonly used to display a legal warning.",
+      "framework_hints": [
+        {
+          "framework": "CIS",
+          "possible_control_id": "CIS-1.2.1"
+        },
+        {
+          "framework": "DISA-STIG",
+          "possible_control_id": "V-215850"
+        }
+      ]
+    },
+    "reviewed_by": "SecOps_Lead",
+    "reviewed_at": "2026-09-14T14:30:26.432281+00:00"
+  },
+  {
+    "suggestion_id": "4c36eac903e162b0",
+    "timestamp": "2026-09-14T14:31:40.229796+00:00",
+    "status": "approve_with_correction",
+    "suggestion": {
+      "raw_line": "service call-home",
+      "suggested_rule_id": null,
+      "suggested_new_rule": {
+        "internalTitle": "Disable unneeded diagnostic and telemetry services (Call Home)",
+        "csmFieldChecked": "csm.services.call_home",
+        "condition": "equals False"
+      },
+      "confidence": 0.88,
+      "rationale": "The CLI configuration line `service call-home` maps to the specified compliance rule and data field `csm.services.call_home` because it is a specific command to disable the diagnostic and telemetry services, which fall under the category of call home services.",
+      "framework_hints": [
+        {
+          "framework": "CIS",
+          "possible_control_id": "CIS-1.4.1"
+        },
+        {
+          "framework": "DISA-STIG",
+          "possible_control_id": "V-215849"
+        }
+      ]
+    },
+    "reviewed_by": "SecOps_Lead_Reviewer",
+    "reviewed_at": "2026-09-14T14:31:45.886198+00:00"
+  },
+  {
+    "suggestion_id": "e2489b4bb102ba63",
+    "timestamp": "2026-09-14T14:31:45.848742+00:00",
+    "status": "rejected",
+    "suggestion": {
+      "raw_line": "banner motd ^C Unauthorized ^C",
+      "suggested_rule_id": null,
+      "suggested_new_rule": {
+        "internalTitle": "Configure legal warning banner",
+        "csmFieldChecked": "csm.management.banner",
+        "condition": "not_null"
+      },
+      "confidence": 0.65,
+      "rationale": "This CLI configuration line maps to the specified compliance rule and data field because it sets the device banner to display a \"Unauthorized\" message after a carriage return (Caret) character (`^C`), which is the same character used to indicate the end of a login prompt on a Unix-like system.",
+      "framework_hints": [
+        {
+          "framework": "CIS",
+          "possible_control_id": "CIS-1.2.1"
+        },
+        {
+          "framework": "DISA-STIG",
+          "possible_control_id": "V-215850"
+        }
+      ]
+    },
+    "reviewed_by": "SecOps_Lead",
+    "reviewed_at": "2026-09-14T14:31:45.867599+00:00"
+  },
+  {
+    "suggestion_id": "d16d7f1472796d09",
+    "timestamp": "2026-09-14T14:32:38.838188+00:00",
+    "status": "approve_with_correction",
+    "suggestion": {
+      "raw_line": "service call-home",
+      "suggested_rule_id": null,
+      "suggested_new_rule": {
+        "internalTitle": "Disable unneeded diagnostic and telemetry services (Call Home)",
+        "csmFieldChecked": "csm.services.call_home",
+        "condition": "equals False"
+      },
+      "confidence": 0.88,
+      "rationale": "The CLI configuration line \"service call-home\" maps to the specified compliance rule and data field because it specifies the diagnostic and telemetry services to be disabled, which are part of the Call Home (csm.services.call_home) target rule.",
+      "framework_hints": [
+        {
+          "framework": "CIS",
+          "possible_control_id": "CIS-1.4.1"
+        },
+        {
+          "framework": "DISA-STIG",
+          "possible_control_id": "V-215849"
+        }
+      ]
+    },
+    "reviewed_by": "SecOps_Lead_Reviewer",
+    "reviewed_at": "2026-09-14T14:32:46.815124+00:00"
+  },
+  {
+    "suggestion_id": "defe3989d7c4791f",
+    "timestamp": "2026-09-14T14:32:46.749715+00:00",
+    "status": "rejected",
+    "suggestion": {
+      "raw_line": "banner motd ^C Unauthorized ^C",
+      "suggested_rule_id": null,
+      "suggested_new_rule": {
+        "internalTitle": "Configure legal warning banner",
+        "csmFieldChecked": "csm.management.banner",
+        "condition": "not_null"
+      },
+      "confidence": 0.65,
+      "rationale": "This CLI configuration line maps to the specified compliance rule and data field because the `banner motd` command displays the machine type definition (MTD) for the device, and the `^C` notation indicates that the warning message is from the root cause analysis tool (RCAT), which is typically used in the `Configure legal warning banner` target rule.",
+      "framework_hints": [
+        {
+          "framework": "CIS",
+          "possible_control_id": "CIS-1.2.1"
+        },
+        {
+          "framework": "DISA-STIG",
+          "possible_control_id": "V-215850"
+        }
+      ]
+    },
+    "reviewed_by": "SecOps_Lead",
+    "reviewed_at": "2026-09-14T14:32:46.783601+00:00"
+  },
+  {
+    "suggestion_id": "8e9046dd144dc8db",
+    "timestamp": "2026-09-14T14:33:17.667724+00:00",
+    "status": "approve_with_correction",
+    "suggestion": {
+      "raw_line": "service call-home",
+      "suggested_rule_id": null,
+      "suggested_new_rule": {
+        "internalTitle": "Disable unneeded diagnostic and telemetry services (Call Home)",
+        "csmFieldChecked": "csm.services.call_home",
+        "condition": "equals False"
+      },
+      "confidence": 0.88,
+      "rationale": "The CLI configuration line \"service call-home\" maps to the specified compliance rule and data field \"csm.services.call_home\" because this command is related to network devices' diagnostic and telemetry capabilities, which are often referred to as \"Call Home\" services.",
+      "framework_hints": [
+        {
+          "framework": "CIS",
+          "possible_control_id": "CIS-1.4.1"
+        },
+        {
+          "framework": "DISA-STIG",
+          "possible_control_id": "V-215849"
+        }
+      ]
+    },
+    "reviewed_by": "SecOps_Lead_Reviewer",
+    "reviewed_at": "2026-09-14T14:33:27.065471+00:00"
+  },
+  {
+    "suggestion_id": "49ae7565a389aff2",
+    "timestamp": "2026-09-14T14:33:26.990230+00:00",
+    "status": "rejected",
+    "suggestion": {
+      "raw_line": "banner motd ^C Unauthorized ^C",
+      "suggested_rule_id": null,
+      "suggested_new_rule": {
+        "internalTitle": "Configure legal warning banner",
+        "csmFieldChecked": "csm.management.banner",
+        "condition": "not_null"
+      },
+      "confidence": 0.65,
+      "rationale": "This configuration line maps to the specified compliance rule and data field because it is specifying a \"motd\" (message of the day) banner with a fixed message (`^C`) and a specific character (`^C`) that is set to \"Unauthorized\". This matches the format specified in the target rule, where the field name is \"csm.management.banner\" and the rule specifies a \"motd\" banner with a fixed message and character.",
+      "framework_hints": [
+        {
+          "framework": "CIS",
+          "possible_control_id": "CIS-1.2.1"
+        },
+        {
+          "framework": "DISA-STIG",
+          "possible_control_id": "V-215850"
+        }
+      ]
+    },
+    "reviewed_by": "SecOps_Lead",
+    "reviewed_at": "2026-09-14T14:33:27.031447+00:00"
+  },
+  {
+    "suggestion_id": "c280dec1d7c37a69",
+    "timestamp": "2026-09-14T14:34:34.432894+00:00",
+    "status": "approve_with_correction",
+    "suggestion": {
+      "raw_line": "service call-home",
+      "suggested_rule_id": null,
+      "suggested_new_rule": {
+        "internalTitle": "Disable unneeded diagnostic and telemetry services (Call Home)",
+        "csmFieldChecked": "csm.services.call_home",
+        "condition": "equals False"
+      },
+      "confidence": 0.88,
+      "rationale": "This CLI configuration line maps to the specified compliance rule and data field because the \"service call-home\" is a diagnostic and telemetry service, and disabling it is intended to remove unnecessary diagnostic and telemetry services from the network device. The \"csm.services.call_home\" field specifically refers to the call-home service, indicating that disabling this service is the target of the compliance rule.",
+      "framework_hints": [
+        {
+          "framework": "CIS",
+          "possible_control_id": "CIS-1.4.1"
+        },
+        {
+          "framework": "DISA-STIG",
+          "possible_control_id": "V-215849"
+        }
+      ]
+    },
+    "reviewed_by": "SecOps_Lead_Reviewer",
+    "reviewed_at": "2026-09-14T14:34:42.752367+00:00"
+  },
+  {
+    "suggestion_id": "fbeafb661f1655f2",
+    "timestamp": "2026-09-14T14:34:42.674070+00:00",
+    "status": "rejected",
+    "suggestion": {
+      "raw_line": "banner motd ^C Unauthorized ^C",
+      "suggested_rule_id": null,
+      "suggested_new_rule": {
+        "internalTitle": "Configure legal warning banner",
+        "csmFieldChecked": "csm.management.banner",
+        "condition": "not_null"
+      },
+      "confidence": 0.65,
+      "rationale": "The specified CLI configuration line maps to the specified compliance rule and data field because it sets the device's banner to display the character set and character set encoding \"ASCII\" (C), which is equivalent to \"US-ASCII\" and indicates that the device is configured to use the standard ASCII character set, resulting in a \"Unauthorized\" message.",
+      "framework_hints": [
+        {
+          "framework": "CIS",
+          "possible_control_id": "CIS-1.2.1"
+        },
+        {
+          "framework": "DISA-STIG",
+          "possible_control_id": "V-215850"
+        }
+      ]
+    },
+    "reviewed_by": "SecOps_Lead",
+    "reviewed_at": "2026-09-14T14:34:42.716515+00:00"
+  },
+  {
+    "suggestion_id": "7e35b9b66d80c2a7",
+    "timestamp": "2026-09-14T14:35:57.648021+00:00",
+    "status": "approve_with_correction",
+    "suggestion": {
+      "raw_line": "service call-home",
+      "suggested_rule_id": null,
+      "suggested_new_rule": {
+        "internalTitle": "Disable unneeded diagnostic and telemetry services (Call Home)",
+        "csmFieldChecked": "csm.services.call_home",
+        "condition": "equals False"
+      },
+      "confidence": 0.88,
+      "rationale": "The given CLI configuration line, \"service call-home\", maps to the specified compliance rule and data field because this command enables or disables services related to Call Home, a diagnostic and telemetry service used by network devices to report their status and perform health checks. Specifically, the \"service call-home\" command enables or disables Call Home services, which are associated with the \"csm.services.call_home\" target field.",
+      "framework_hints": [
+        {
+          "framework": "CIS",
+          "possible_control_id": "CIS-1.4.1"
+        },
+        {
+          "framework": "DISA-STIG",
+          "possible_control_id": "V-215849"
+        }
+      ]
+    },
+    "reviewed_by": "SecOps_Lead_Reviewer",
+    "reviewed_at": "2026-09-14T14:36:05.406001+00:00"
+  },
+  {
+    "suggestion_id": "b9112672c7e5c36d",
+    "timestamp": "2026-09-14T14:36:05.325912+00:00",
+    "status": "rejected",
+    "suggestion": {
+      "raw_line": "banner motd ^C Unauthorized ^C",
+      "suggested_rule_id": null,
+      "suggested_new_rule": {
+        "internalTitle": "Configure legal warning banner",
+        "csmFieldChecked": "csm.management.banner",
+        "condition": "not_null"
+      },
+      "confidence": 0.65,
+      "rationale": "This CLI configuration line maps to the specified compliance rule and data field by configuring the banner to include a \"Legal Warning\" message, which is associated with the \"Configure legal warning\" target rule, and includes a \"C\" in the banner, indicating it is a copyright notice.",
+      "framework_hints": [
+        {
+          "framework": "CIS",
+          "possible_control_id": "CIS-1.2.1"
+        },
+        {
+          "framework": "DISA-STIG",
+          "possible_control_id": "V-215850"
+        }
+      ]
+    },
+    "reviewed_by": "SecOps_Lead",
+    "reviewed_at": "2026-09-14T14:36:05.367917+00:00"
+  },
+  {
+    "suggestion_id": "dccaf012ea00746a",
+    "timestamp": "2026-09-14T14:36:55.946179+00:00",
+    "status": "approve_with_correction",
+    "suggestion": {
+      "raw_line": "service call-home",
+      "suggested_rule_id": null,
+      "suggested_new_rule": {
+        "internalTitle": "Disable unneeded diagnostic and telemetry services (Call Home)",
+        "csmFieldChecked": "csm.services.call_home",
+        "condition": "equals False"
+      },
+      "confidence": 0.88,
+      "rationale": "This configuration line maps to the specified compliance rule and data field because it specifies the services to be disabled, which are diagnostic and telemetry services, and maps this to the 'csm.services.call_home' field, indicating the services to be controlled.",
+      "framework_hints": [
+        {
+          "framework": "CIS",
+          "possible_control_id": "CIS-1.4.1"
+        },
+        {
+          "framework": "DISA-STIG",
+          "possible_control_id": "V-215849"
+        }
+      ]
+    },
+    "reviewed_by": "SecOps_Lead_Reviewer",
+    "reviewed_at": "2026-09-14T14:37:05.049319+00:00"
+  },
+  {
+    "suggestion_id": "ffc6433efd0ce6b7",
+    "timestamp": "2026-09-14T14:37:04.962401+00:00",
+    "status": "rejected",
+    "suggestion": {
+      "raw_line": "banner motd ^C Unauthorized ^C",
+      "suggested_rule_id": null,
+      "suggested_new_rule": {
+        "internalTitle": "Configure legal warning banner",
+        "csmFieldChecked": "csm.management.banner",
+        "condition": "not_null"
+      },
+      "confidence": 0.65,
+      "rationale": "The CLI configuration line `banner motd ^C Unauthorized ^C` maps to the specified compliance rule and data field by specifying the MotD (Message of the Day) banner as the target rule, which includes the \"Unauthorized\" compliance directive, and the data field \"csm.management banner\", which corresponds to the Compliance Standard Management (CSM) banner.",
+      "framework_hints": [
+        {
+          "framework": "CIS",
+          "possible_control_id": "CIS-1.2.1"
+        },
+        {
+          "framework": "DISA-STIG",
+          "possible_control_id": "V-215850"
+        }
+      ]
+    },
+    "reviewed_by": "SecOps_Lead",
+    "reviewed_at": "2026-09-14T14:37:05.007578+00:00"
   }
 ]

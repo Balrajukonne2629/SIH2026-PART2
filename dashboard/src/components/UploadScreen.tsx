@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { uploadAuditConfig, getLedger } from '../api';
+import { formatToIST } from '../utils';
 
 interface UploadScreenProps {
   onAuditStarted: (sessionId: string, initialResults: any) => void;
@@ -434,7 +435,7 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
                 <tr>
                   <th className="py-2.5 px-4 font-semibold">Entry ID / Sequence</th>
                   <th className="py-2.5 px-4 font-semibold">Device Hostname</th>
-                  <th className="py-2.5 px-4 font-semibold">Timestamp (UTC)</th>
+                  <th className="py-2.5 px-4 font-semibold">Timestamp (IST)</th>
                   <th className="py-2.5 px-4 font-semibold">Config SHA-256</th>
                   <th className="py-2.5 px-4 font-semibold">Audit Breakdown</th>
                   <th className="py-2.5 px-4 font-semibold">Status</th>
@@ -470,8 +471,8 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
                       <td className="py-3 px-4 font-mono font-semibold text-slate-200">
                         {entry.device_hostname || 'unknown'}
                       </td>
-                      <td className="py-3 px-4 text-slate-400 font-mono text-[11px]">
-                        {entry.timestamp}
+                      <td className="py-3 px-4 text-slate-300 font-mono text-[11px]">
+                        <span title={`Canonical UTC: ${entry.timestamp}`}>{formatToIST(entry.timestamp)}</span>
                       </td>
                       <td className="py-3 px-4 font-mono text-[11px] text-slate-400">
                         <span title={entry.config_file_hash}>

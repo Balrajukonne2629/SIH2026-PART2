@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getAuditResults } from '../api';
+import { formatToIST } from '../utils';
 
 interface AuditResultsScreenProps {
   sessionId: string;
@@ -141,8 +142,9 @@ export const AuditResultsScreen: React.FC<AuditResultsScreenProps> = ({
         {/* Header Metadata Ribbon */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 text-xs font-mono">
           <div>
-            <span className="text-slate-500 block text-[10px] uppercase">Audit Timestamp (UTC)</span>
-            <span className="text-slate-300 font-semibold">{timestamp}</span>
+            <span className="text-slate-500 block text-[10px] uppercase">Audit Timestamp (IST)</span>
+            <span className="text-slate-300 font-semibold" title={`Canonical UTC: ${timestamp}`}>{formatToIST(timestamp)}</span>
+            <span className="block text-[10px] text-slate-500 font-mono mt-0.5" title="Canonical UTC timestamp">Canonical: {timestamp}</span>
           </div>
           <div>
             <span className="text-slate-500 block text-[10px] uppercase">Config File Hash (SHA-256)</span>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getLedger, verifyLedger, verifyReport, getReportDownloadUrl } from '../api';
+import { formatToIST } from '../utils';
 
 export const AuditLogReportScreen: React.FC = () => {
   const [entries, setEntries] = useState<any[]>([]);
@@ -277,7 +278,7 @@ export const AuditLogReportScreen: React.FC = () => {
                         <div className="flex items-center gap-3 text-xs text-slate-400 mt-1 font-mono">
                           <span>DEVICE: <strong className="text-slate-200">{entry.device_hostname}</strong></span>
                           <span className="text-slate-600">•</span>
-                          <span>{entry.timestamp}</span>
+                          <span className="text-slate-300" title={`Canonical UTC: ${entry.timestamp}`}>{formatToIST(entry.timestamp)}</span>
                         </div>
                       </div>
                     </div>
@@ -376,10 +377,14 @@ export const AuditLogReportScreen: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-800/80">
+                      <div className="flex flex-wrap items-center justify-between text-[11px] text-slate-400 pt-2 border-t border-slate-800/80 gap-2">
                         <div>
                           <span>CONFIG SHA-256: </span>
                           <code className="text-sky-300">{(entry.config_file_hash || '').substring(0, 24)}...</code>
+                        </div>
+                        <div>
+                          <span>CANONICAL TIMESTAMP (UTC): </span>
+                          <code className="text-slate-300 select-all">{entry.timestamp}</code>
                         </div>
                         <div>
                           <span>REMEDIATED RULE: </span>
