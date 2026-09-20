@@ -3,8 +3,53 @@
  * Endpoints at http://127.0.0.1:8000
  */
 
+import type { LoginResponse, UserIdentity, ModelStatus, ModelModeUpdateRequest, ModelModeUpdateResponse } from './types';
+
 // Use relative path '' so Vite dev proxy forwards /api -> http://127.0.0.1:8000
 export const API_BASE = '';
+
+let inMemoryToken: string | null = null;
+const unauthorizedListeners: Set<() => void> = new Set();
+
+export function getAccessToken(): string | null {
+  if (inMemoryToken) return inMemoryToken;
+  if (typeof window !== 'undefined' && window.sessionStorage) {
+    inMemoryToken = window.sessionStorage.getItem('ntro_auth_token');
+  }
+  return inMemoryToken;
+}
+
+export function setAccessToken(token: string | null): void {
+  inMemoryToken = token;
+  if (typeof window !== 'undefined' && window.sessionStorage) {
+    if (token) {
+      window.sessionStorage.setItem('ntro_auth_token', token);
+    } else {
+      window.sessionStorage.removeItem('ntro_auth_token');
+    }
+  }
+}
+
+export function clearAccessToken(): void {
+  setAccessToken(null);
+}
+
+export function onUnauthorized(callback: () => void): () => void {
+  unauthorizedListeners.add(callback);
+  return () => {
+    unauthorizedListeners.delete(callback);
+  };
+}
+
+function notifyUnauthorized(): void {
+  unauthorizedListeners.forEach((cb) => {
+    try {
+      cb();
+    } catch {
+      // ignore callback error
+    }
+  });
+}
 
 export class ApiError extends Error {
   status: number;
@@ -17,8 +62,19 @@ export class ApiError extends Error {
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const url = `${API_BASE}${path}`;
+  const token = getAccessToken();
+  const headers: Record<string, string> = {
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...((options?.headers as Record<string, string>) || {})
+  };
+
+  const reqOptions: RequestInit = {
+    ...options,
+    headers
+  };
+
   try {
-    const res = await fetch(url, options);
+    const res = await fetch(url, reqOptions);
     if (!res.ok) {
       let errorMsg = `HTTP ${res.status} ${res.statusText}`;
       try {
@@ -29,6 +85,10 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
       } catch {
         // use default errorMsg
       }
+      if (res.status === 401) {
+        clearAccessToken();
+        notifyUnauthorized();
+      }
       throw new ApiError(res.status, errorMsg);
     }
     return (await res.json()) as T;
@@ -36,6 +96,23 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     if (err instanceof ApiError) throw err;
     throw new ApiError(0, `Cannot connect to compliance backend at ${API_BASE}. Ensure server is running (python -m uvicorn main:app --host 127.0.0.1 --port 8000). Error: ${err.message}`);
   }
+}
+
+// Auth API helpers
+export async function login(username: string, password: string): Promise<LoginResponse> {
+  const data = await request<LoginResponse>('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, password })
+  });
+  if (data?.access_token) {
+    setAccessToken(data.access_token);
+  }
+  return data;
+}
+
+export async function getCurrentUser(): Promise<UserIdentity> {
+  return request<UserIdentity>('/api/auth/me');
 }
 
 // 1. POST /api/audit/upload
@@ -87,15 +164,16 @@ export async function suggestMapping(unmappedLine: string) {
 // 4. POST /api/ai/approve
 export async function approveSuggestion(payload: {
   suggestion_id: string;
-  reviewer_name: string;
   decision: 'approve' | 'reject' | 'approve_with_correction';
   corrected_mapping?: any;
   session_id?: string;
+  reviewer_name?: string;
 }) {
+  const { reviewer_name: _ignored, ...wirePayload } = payload;
   return request<any>('/api/ai/approve', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(wirePayload),
   });
 }
 
@@ -169,3 +247,68 @@ export async function verifyReport(entryId: string) {
     entry_id: string;
   }>(`/api/report/${entryId}/verify`);
 }
+
+// 11. GET /api/model/status
+export async function getModelStatus(): Promise<ModelStatus> {
+  return request<ModelStatus>('/api/model/status');
+}
+
+// 12. POST /api/model/mode
+export async function setModelMode(payload: ModelModeUpdateRequest): Promise<ModelModeUpdateResponse> {
+  return request<ModelModeUpdateResponse>('/api/model/mode', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
+
+// 13. GET /api/compliance/frameworks
+export async function getComplianceFrameworks() {
+  return request<{
+    frameworks: Array<{
+      framework_id: string;
+      display_name: string;
+      version: string;
+      authority: string;
+      control_count: number;
+      platform: string;
+      enabled: boolean;
+    }>;
+    total_count: number;
+  }>('/api/compliance/frameworks');
+}
+
+// 14. POST /api/compliance/evaluate
+export async function evaluateCompliance(payload: {
+  session_id?: string;
+  csm?: any;
+  raw_config?: string;
+  framework_ids?: string[];
+}) {
+  return request<{
+    audit_id: string | null;
+    device_hostname: string;
+    evaluation_timestamp: string;
+    overall_metrics: {
+      total_frameworks: number;
+      total_controls: number;
+      total_pass: number;
+      total_fail: number;
+      total_unknown: number;
+      compliance_percentage: number;
+      by_severity: {
+        CRITICAL: { total: number; pass: number; fail: number; unknown: number };
+        HIGH: { total: number; pass: number; fail: number; unknown: number };
+        MEDIUM: { total: number; pass: number; fail: number; unknown: number };
+        LOW: { total: number; pass: number; fail: number; unknown: number };
+      };
+    };
+    framework_summaries: Record<string, any>;
+    consolidated_evidence: any[];
+  }>('/api/compliance/evaluate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
+

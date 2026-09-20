@@ -6,14 +6,19 @@ Guaranteed execution-safe: remediation commands are NEVER executed.
 """
 import ast
 import json
+import os
 import pathlib
 import re
+import time
 import urllib.error
 import urllib.request
 import jinja2
+import ai_model_manager
+from ai_model_manager import ModelMode, WorkloadType
 
 BASE = pathlib.Path(__file__).parent.resolve()
 TEMPLATE_DIR = BASE / "templates" / "remediation"
+_MODEL_MANAGER = ai_model_manager.get_model_manager()
 
 def generate_remediation(rule_id: str, csm: dict) -> str:
     """Renders Jinja2 remediation template for the given rule_id.
@@ -99,11 +104,8 @@ def check_static_conflicts(rule_id: str, csm: dict, remediation_commands: str) -
 
 def explain_failure_ai(rule_id: str, csm: dict, remediation_cmd: str) -> dict:
     """Generates plain-language explanation of failure cause and remediation action
-    using Ollama (llama3.2:1b) with fallback to hardcoded templates if unreachable.
+    using local AI via AIModelManager with fallback to hardcoded templates if unreachable.
     """
-    _OLLAMA_URL = "http://localhost:11434/api/generate"
-    _MODEL = "llama3.2:1b"
-
     # Build prompt from real audit context
     ntp_srv = csm.get("ntp", {}).get("servers", ["configured servers"])
     if rule_id == "CISCO-NTP-001":
@@ -125,51 +127,37 @@ def explain_failure_ai(rule_id: str, csm: dict, remediation_cmd: str) -> dict:
         f"the device configuration, and what the device does differently after it is applied.]\n"
     )
 
-    # Phrases that indicate the model refused rather than answering
-    _REFUSAL_MARKERS = (
-        "i can't provide", "i cannot provide", "illegal or harmful",
-        "i'm not able to", "i can't assist", "i cannot assist",
-        "i'm unable to", "associated with malicious",
-        "i can't fulfill", "i cannot fulfill", "i can't complete",
+    res = _MODEL_MANAGER.generate(
+        prompt=prompt,
+        workload=WorkloadType.REMEDIATION_EXPLANATION
     )
 
-    ollama_ok = False
-    try:
-        payload = json.dumps({"model": _MODEL, "prompt": prompt, "stream": False}).encode("utf-8")
-        req = urllib.request.Request(_OLLAMA_URL, data=payload, headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-        response_text = data.get("response", "").strip()
-        is_refusal = any(m in response_text.lower() for m in _REFUSAL_MARKERS)
-        if len(response_text) > 20 and not is_refusal:
-            ollama_ok = True
-            print(f"[explain_failure_ai] path=ollama model={_MODEL} chars={len(response_text)}")
-            # Split on WHAT_REMEDIATION_DOES — handles both "LABEL: text" and "LABEL\n\ntext"
-            _WHAT_PAT = re.compile(r'WHAT_REMEDIATION_DOES\s*:?\s*', re.IGNORECASE)
-            parts = _WHAT_PAT.split(response_text, maxsplit=1)
-            if len(parts) == 2:
-                why = re.sub(r'(?i)^WHY_IT_FAILED\s*:?\s*', '', parts[0]).strip()
-                what = parts[1].strip()
-            else:
-                why = what = response_text
-            # Strip echoed context lines the model sometimes repeats from the prompt
-            _CTX_PAT = re.compile(
-                r'^(here is.*?\n+|device\s*:.*?\n+|rule\s*:.*?\n+|configuration evidence\s*:.*?\n+)+',
-                re.IGNORECASE | re.MULTILINE
-            )
-            why = _CTX_PAT.sub('', why).lstrip('\n').strip()
-            what = _CTX_PAT.sub('', what).lstrip('\n').strip()
-            return {
-                "rule_id": rule_id,
-                "why_it_failed": why,
-                "what_remediation_does": what,
-                "model_used": _MODEL,
-                "execution_safety": "display_only_no_device_execution",
-            }
-        elif is_refusal:
-            print(f"[explain_failure_ai] path=fallback reason=safety_refusal chars={len(response_text)}")
-    except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError) as exc:
-        print(f"[explain_failure_ai] path=fallback reason={type(exc).__name__}: {exc}")
+    if not res.is_fallback and len(res.text) > 20:
+        print(f"[explain_failure_ai] path=ollama model={res.model_used} mode={res.mode_used.value} chars={len(res.text)} elapsed={res.latency_sec:.1f}s")
+        # Split on WHAT_REMEDIATION_DOES — handles both "LABEL: text" and "LABEL\n\ntext"
+        _WHAT_PAT = re.compile(r'WHAT_REMEDIATION_DOES\s*:?\s*', re.IGNORECASE)
+        parts = _WHAT_PAT.split(res.text, maxsplit=1)
+        if len(parts) == 2:
+            why = re.sub(r'(?i)^WHY_IT_FAILED\s*:?\s*', '', parts[0]).strip()
+            what = parts[1].strip()
+        else:
+            why = what = res.text
+        # Strip echoed context lines the model sometimes repeats from the prompt
+        _CTX_PAT = re.compile(
+            r'^(here is.*?\n+|device\s*:.*?\n+|rule\s*:.*?\n+|configuration evidence\s*:.*?\n+)+',
+            re.IGNORECASE | re.MULTILINE
+        )
+        why = _CTX_PAT.sub('', why).lstrip('\n').strip()
+        what = _CTX_PAT.sub('', what).lstrip('\n').strip()
+        return {
+            "rule_id": rule_id,
+            "why_it_failed": why,
+            "what_remediation_does": what,
+            "model_used": res.model_used,
+            "execution_safety": "display_only_no_device_execution",
+        }
+    else:
+        print(f"[explain_failure_ai] path=fallback reason={res.fallback_reason} chars=0")
 
     # Fallback: original hardcoded templates
     if rule_id == "CISCO-NTP-001":
@@ -197,19 +185,12 @@ def explain_failure_ai(rule_id: str, csm: dict, remediation_cmd: str) -> dict:
     }
 
 
+import ast_safety
+
+
 def verify_safety_no_execution() -> bool:
     """AST code analysis asserting that no process execution or device communication
     libraries are imported or used in remediation_engine.py.
     """
-    forbidden = {"subprocess", "os.system", "paramiko", "netmiko", "pexpect", "telnetlib", "socket"}
-    src = pathlib.Path(__file__).read_text(encoding="utf-8")
-    tree = ast.parse(src)
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            for n in node.names:
-                if n.name in forbidden:
-                    raise RuntimeError(f"Safety Violation: Forbidden library '{n.name}' imported!")
-        elif isinstance(node, ast.ImportFrom):
-            if node.module in forbidden:
-                raise RuntimeError(f"Safety Violation: Forbidden module '{node.module}' imported!")
-    return True
+    return ast_safety.assert_no_execution_imports(pathlib.Path(__file__))
+

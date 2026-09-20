@@ -9,21 +9,29 @@
 
 ## 1. File Inventory & Pipeline Mapping
 
-| File | PRD Step | Lines | External Dependencies | Primary Purpose / Role |
+| File | PRD Step / Phase | Lines | External Dependencies | Primary Purpose / Role |
 | :--- | :---: | :---: | :--- | :--- |
-| `cisco_auditor.py` | Step 1 & 2 | 221 | None (stdlib only: `re`, `json`, `hashlib`, `pathlib`, `sys`) | Cisco IOS-XE parser, CSM normalizer, generic condition evaluator, and answer key checker. |
-| `05_Configuration_Datasets/Cisco/labeled_test_config.txt` | Step 1 | 73 | None (raw CLI) | Canonical Cisco IOS-XE test config covering 10 baseline rules + 1 unmapped line (`service call-home`). |
+| `cisco_auditor.py` | Step 1 & 2 | 222 | None (stdlib only) | Cisco IOS-XE parser, CSM normalizer, generic condition evaluator, and answer key checker. |
+| `05_Configuration_Datasets/Cisco/labeled_test_config.txt` | Step 1 | 73 | None (raw CLI) | Canonical Cisco IOS-XE test config covering baseline rules + 1 unmapped line (`service call-home`). |
 | `05_Configuration_Datasets/Cisco/labeled_test_config_answers.json` | Step 1 | 12 | None (JSON) | Ground-truth answer key verifying baseline rule evaluation verdicts. |
-| `ai_suggester.py` | Step 3 | 203 | `torch`, `transformers` (DistilBERT 66M) | Unmapped CLI line semantic interpreter, suggestion queue manager, and reviewer approval workflow. |
-| `pending_suggestions.json` | Step 3 | 58 | None (JSON) | Append-only store for AI-generated rule suggestions awaiting human review. |
-| `trusted_mappings.json` | Step 3 | 31 | None (JSON) | Approved custom rule mappings with mandatory version block (`version`, `approved_by`, `approved_at`, `source: "ai_suggested"`). |
-| `remediation_engine.py` | Step 4 | 160 | `jinja2`, `torch`, `transformers` | Parameterized Jinja2 remediation CLI generator, static conflict analyzer, AST safety auditor, and plain-language explainer. |
+| `ai_suggester.py` | Step 3 | 243 | `torch`, `transformers` (DistilBERT 66M) | Unmapped CLI line semantic interpreter, suggestion queue manager, and reviewer approval workflow. |
+| `pending_suggestions.json` | Step 3 | Dynamic | None (JSON) | File-based / SQLite backup store for AI-generated rule suggestions awaiting human review. |
+| `trusted_mappings.json` | Step 3 | Dynamic | None (JSON) | File-based / SQLite backup store for approved custom rule mappings with mandatory version block. |
+| `remediation_engine.py` | Step 4 | 204 | `jinja2`, `ai_model_manager` | Parameterized Jinja2 remediation CLI generator, static conflict analyzer, AST safety auditor, and plain-language explainer. |
 | `templates/remediation/CISCO-NTP-001.j2` | Step 4 | 8 | Jinja2 syntax | Parameterized CLI remediation template enforcing NTP authentication on target peers. |
-| `audit_log.py` | Step 5 | 118 | None (stdlib only: `hashlib`, `json`, `datetime`, `pathlib`) | Append-only cryptographic ledger (`audit_log.jsonl`) with canonical SHA-256 hash chaining, collision-free monotonic IDs, and tamper verification. |
-| `audit_log.jsonl` | Step 5 | 2 | None (JSON Lines) | Cryptographically linked audit ledger entries recording configuration state, evaluation verdicts, and remediation actions. |
-| `report_generator.py` | Step 5 | 332 | `reportlab`, `pypdf` | Enterprise compliance PDF certificate generator embedding visual status badges, vector QR code, and SHA-256 integrity hash. |
+| `audit_log.py` | Step 5 | 161 | None (stdlib only, `database`) | Cryptographic ledger engine recording into SQLite `audit_ledger` with canonical SHA-256 hash chaining and tamper verification (legacy `logfile` parameter accepted for compatibility). |
+| `data/auditor.db` | System | SQLite DB | None (stdlib `sqlite3`) | Authoritative SQLite persistence layer storing users, sessions, mappings, and the cryptographic audit ledger. |
+| `report_generator.py` | Step 5 | 338 | `reportlab`, `pypdf`, `database` | Enterprise compliance PDF certificate generator embedding visual status badges, vector QR code, and SHA-256 integrity hash. |
 | `cisco_compliance_report.pdf` | Step 5 | Binary | PDF | Generated, tamper-verifiable compliance certificate for `EDGE-RTR-01`. |
-| `test_step5_full_loop.py` | Steps 1–5 | 260 | All dependencies | Consolidated canonical test suite verifying all 17 integration stages, SNMP/NTP edge-cases, AST safety audit, reviewer correction/rejection workflows, and performance benchmarks. |
+| `test_step5_full_loop.py` | Steps 1–5 | 265 | All dependencies | Consolidated canonical test suite verifying all 17 integration stages, SNMP/NTP edge-cases, AST safety audit, reviewer correction/rejection workflows, and performance benchmarks. |
+| `main.py` | Phase 3A.5 | ~1045 | `fastapi`, `uvicorn`, `pydantic` | Unified REST API exposing 16 endpoints for auth, compliance evaluation, AI suggestions, remediation, and ledger verification. |
+| `auth.py` | Security | 302 | None (stdlib only) | Pure-Python HS256 JWT validation, PBKDF2 password hashing, and role-based access control. |
+| `database.py` | Persistence | 388 | None (stdlib `sqlite3`) | SQLite database schema initialization, session persistence, user management, and ledger transactions. |
+| `compliance_framework.py` | Phase 3A.1 | 447 | None (stdlib only) | Neutral compliance domain model (`Control`, `Framework`, `EvaluationResult`, `Evidence`), registry, and scoring contracts. |
+| `cis_benchmark_cisco_iosxe.py` | Phase 3A.2 | 674 | None (stdlib only) | Deterministic CIS Benchmark evaluator implementing 7 provenanced controls for Cisco IOS-XE (v2.2.1). |
+| `disa_stig_cisco_iosxe.py` | Phase 3A.3 | 871 | None (stdlib only) | Deterministic DISA-STIG evaluator implementing 10 provenanced controls for Cisco IOS-XE (V3R7). |
+| `compliance_aggregator.py` | Phase 3A.4 | 361 | None (stdlib only) | Multi-framework aggregation engine computing pass rates, macro totals, duplicate deduplication, and conflict detection. |
+| `ai_model_manager.py` | AI Subsystem | 580 | None (stdlib only) | Centralized local AI model router with hardware probe, loopback-safe Ollama integration, allowlisting, and deterministic fallback. |
 
 ---
 
@@ -81,7 +89,7 @@ The PS26155 platform is engineered to support multi-vendor network compliance wi
 |  2. vendor_rule_mapping.json (Rules keyed by vendor, sharing common_rule_id)     |
 |  3. Generic Condition Evaluator (resolve_csm_path() + eval_condition())          |
 |  4. AI Interpretation & Reviewer Approval (ai_suggester.py -> trusted_mappings)   |
-|  5. Cryptographic Hash-Chained Audit Ledger (audit_log.py -> audit_log.jsonl)    |
+|  5. Cryptographic Hash-Chained Audit Ledger (audit_log.py -> SQLite audit_ledger) |
 |  6. Tamper-Verifiable PDF Report Generator (report_generator.py)                 |
 +-----------------------------------------------------------------------------------+
 ```

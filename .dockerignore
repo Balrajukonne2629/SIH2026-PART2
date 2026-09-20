@@ -1,0 +1,15 @@
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.git
+.github
+.agents
+.claude
+node_modules
+dist
+.pytest_cache
+*.db
+*.log
+graphify-out
+.env

@@ -6,7 +6,9 @@ and enforces human reviewer approval before writing to trusted_mappings.json.
 import datetime
 import hashlib
 import json
+import os
 import pathlib
+import time
 import urllib.error
 import urllib.request
 import torch
@@ -36,14 +38,10 @@ def _get_embedding(text: str) -> torch.Tensor:
         out = mod(**inputs)
     return out.last_hidden_state.mean(dim=1).squeeze(0)
 
-_OLLAMA_URL = "http://localhost:11434/api/generate"
-_OLLAMA_MODEL = "llama3.2:1b"
-_REFUSAL_MARKERS = (
-    "i can't provide", "i cannot provide", "illegal or harmful",
-    "i'm not able to", "i can't assist", "i cannot assist",
-    "i'm unable to", "associated with malicious",
-    "i can't fulfill", "i cannot fulfill", "i can't complete",
-)
+import ai_model_manager
+from ai_model_manager import ModelMode, WorkloadType
+
+_MODEL_MANAGER = ai_model_manager.get_model_manager()
 
 def _generate_rationale_ai(line_clean: str, rule_title: str, csm_field: str, confidence: float, fallback_rationale: str) -> str:
     prompt = (
@@ -54,23 +52,19 @@ def _generate_rationale_ai(line_clean: str, rule_title: str, csm_field: str, con
         f"Target field: {csm_field}\n\n"
         "Rationale:"
     )
-    try:
-        payload = json.dumps({"model": _OLLAMA_MODEL, "prompt": prompt, "stream": False}).encode("utf-8")
-        req = urllib.request.Request(_OLLAMA_URL, data=payload, headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=30) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-        response_text = data.get("response", "").strip()
-        is_refusal = any(m in response_text.lower() for m in _REFUSAL_MARKERS)
-        if len(response_text) > 20 and not is_refusal:
-            print(f"[suggest_mapping] path=ollama model={_OLLAMA_MODEL} chars={len(response_text)}")
-            print(f"  AI Rationale: {response_text}")
-            return response_text
-        elif is_refusal:
-            print(f"[suggest_mapping] path=fallback reason=safety_refusal chars={len(response_text)}")
-    except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError) as exc:
-        print(f"[suggest_mapping] path=fallback reason={type(exc).__name__}: {exc}")
+    res = _MODEL_MANAGER.generate(
+        prompt=prompt,
+        workload=WorkloadType.UNMAPPED_LINE_MAPPING,
+        fallback_text=fallback_rationale
+    )
 
-    return fallback_rationale
+    if not res.is_fallback and len(res.text) > 20:
+        print(f"[suggest_mapping] path=ollama model={res.model_used} mode={res.mode_used.value} chars={len(res.text)} elapsed={res.latency_sec:.1f}s")
+        print(f"  AI Rationale: {res.text}")
+        return res.text
+    else:
+        print(f"[suggest_mapping] path=fallback reason={res.fallback_reason} chars={len(fallback_rationale)}")
+        return fallback_rationale
 
 def suggest_mapping(unmapped_line: str, rules_context: list = None) -> dict:
     if rules_context is None:
@@ -157,26 +151,24 @@ def suggest_mapping(unmapped_line: str, rules_context: list = None) -> dict:
         "framework_hints": hints
     }
 
+import database
+
 def store_suggestion(suggestion: dict, filepath: pathlib.Path = PENDING_FILE) -> str:
     ts = datetime.datetime.now(datetime.timezone.utc).isoformat()
     raw_id = f"{suggestion['raw_line']}_{ts}"
     suggestion_id = hashlib.sha256(raw_id.encode("utf-8")).hexdigest()[:16]
 
-    entries = []
-    if filepath.exists():
-        try:
-            entries = json.loads(filepath.read_text(encoding="utf-8"))
-        except Exception:
-            entries = []
+    conn = database.get_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute('''
+            INSERT INTO pending_suggestions (suggestion_id, timestamp, status, suggestion, reviewed_by, reviewed_at)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ''', (suggestion_id, ts, "pending", json.dumps(suggestion), None, None))
+        conn.commit()
+    finally:
+        conn.close()
 
-    entry = {
-        "suggestion_id": suggestion_id,
-        "timestamp": ts,
-        "status": "pending",
-        "suggestion": suggestion
-    }
-    entries.append(entry)
-    filepath.write_text(json.dumps(entries, indent=2), encoding="utf-8")
     return suggestion_id
 
 def approve_suggestion(suggestion_id: str, reviewer_name: str, decision: str,
@@ -186,65 +178,65 @@ def approve_suggestion(suggestion_id: str, reviewer_name: str, decision: str,
     if decision not in ("approve", "reject", "approve_with_correction"):
         raise ValueError(f"Invalid decision '{decision}'. Must be approve, reject, or approve_with_correction.")
 
-    if not pending_file.exists():
-        raise FileNotFoundError(f"Pending file '{pending_file}' does not exist.")
+    conn = database.get_connection()
+    try:
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM pending_suggestions WHERE suggestion_id = ?', (suggestion_id,))
+        target_entry_row = cur.fetchone()
+        
+        if target_entry_row is None:
+            raise ValueError(f"Suggestion ID '{suggestion_id}' not found.")
 
-    entries = json.loads(pending_file.read_text(encoding="utf-8"))
-    target_entry = None
-    for item in entries:
-        if item.get("suggestion_id") == suggestion_id:
-            target_entry = item
-            break
+        now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
 
-    if target_entry is None:
-        raise ValueError(f"Suggestion ID '{suggestion_id}' not found in {pending_file.name}.")
+        if decision == "reject":
+            cur.execute('UPDATE pending_suggestions SET status = ?, reviewed_by = ?, reviewed_at = ? WHERE suggestion_id = ?', 
+                        ("rejected", reviewer_name, now_iso, suggestion_id))
+            conn.commit()
+            return {"suggestion_id": suggestion_id, "status": "rejected", "reviewer": reviewer_name}
 
-    now_iso = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        sug = json.loads(target_entry_row["suggestion"])
+        rule_spec = corrected_mapping if corrected_mapping else sug.get("suggested_new_rule")
+        if not rule_spec:
+            raise ValueError(f"Suggestion '{suggestion_id}' does not have a new rule to approve.")
 
-    if decision == "reject":
-        target_entry["status"] = "rejected"
-        target_entry["reviewed_by"] = reviewer_name
-        target_entry["reviewed_at"] = now_iso
-        pending_file.write_text(json.dumps(entries, indent=2), encoding="utf-8")
-        return {"suggestion_id": suggestion_id, "status": "rejected", "reviewer": reviewer_name}
+        cur.execute('UPDATE pending_suggestions SET status = ?, reviewed_by = ?, reviewed_at = ? WHERE suggestion_id = ?', 
+                    (decision, reviewer_name, now_iso, suggestion_id))
 
-    target_entry["status"] = decision
-    target_entry["reviewed_by"] = reviewer_name
-    target_entry["reviewed_at"] = now_iso
-    pending_file.write_text(json.dumps(entries, indent=2), encoding="utf-8")
-
-    sug = target_entry["suggestion"]
-    rule_spec = corrected_mapping if corrected_mapping else sug["suggested_new_rule"]
-
-    trusted_entry = {
-        "common_rule_id": rule_spec.get("common_rule_id", "COMMON-DIAG-001"),
-        "vendor_rule_id": rule_spec.get("vendor_rule_id", "CISCO-DIAG-001"),
-        "internalTitle": rule_spec["internalTitle"],
-        "csmFieldChecked": rule_spec["csmFieldChecked"],
-        "condition": rule_spec["condition"],
-        "configuration_evidence": [sug["raw_line"]],
-        "check_focus": [rule_spec["internalTitle"]],
-        "frameworkMappings": sug.get("framework_hints", []),
-        "version_info": {
-            "version": "1.0",
-            "approved_by": reviewer_name,
-            "approved_at": now_iso,
-            "source": "ai_suggested"
+        trusted_entry = {
+            "common_rule_id": rule_spec.get("common_rule_id", "COMMON-DIAG-001"),
+            "vendor_rule_id": rule_spec.get("vendor_rule_id", "CISCO-DIAG-001"),
+            "internalTitle": rule_spec["internalTitle"],
+            "csmFieldChecked": rule_spec["csmFieldChecked"],
+            "condition": rule_spec["condition"],
+            "configuration_evidence": [sug["raw_line"]],
+            "check_focus": [rule_spec["internalTitle"]],
+            "frameworkMappings": sug.get("framework_hints", []),
+            "version_info": {
+                "version": "1.0",
+                "approved_by": reviewer_name,
+                "approved_at": now_iso,
+                "source": "ai_suggested"
+            }
         }
-    }
 
-    trusted_entries = []
-    if trusted_file.exists():
-        try:
-            trusted_entries = json.loads(trusted_file.read_text(encoding="utf-8"))
-        except Exception:
-            trusted_entries = []
-
-    existing_idx = next((i for i, r in enumerate(trusted_entries) if r.get("vendor_rule_id") == trusted_entry["vendor_rule_id"]), None)
-    if existing_idx is not None:
-        trusted_entries[existing_idx] = trusted_entry
-    else:
-        trusted_entries.append(trusted_entry)
-
-    trusted_file.write_text(json.dumps(trusted_entries, indent=2), encoding="utf-8")
-    return trusted_entry
+        cur.execute('''
+            INSERT OR REPLACE INTO trusted_mappings 
+            (vendor_rule_id, common_rule_id, internalTitle, csmFieldChecked, condition, configuration_evidence, check_focus, frameworkMappings, version_info)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            trusted_entry["vendor_rule_id"],
+            trusted_entry["common_rule_id"],
+            trusted_entry["internalTitle"],
+            trusted_entry["csmFieldChecked"],
+            trusted_entry["condition"],
+            json.dumps(trusted_entry["configuration_evidence"]),
+            json.dumps(trusted_entry["check_focus"]),
+            json.dumps(trusted_entry["frameworkMappings"]),
+            json.dumps(trusted_entry["version_info"])
+        ))
+        
+        conn.commit()
+        return trusted_entry
+    finally:
+        conn.close()

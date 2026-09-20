@@ -1,0 +1,54 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ntro-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-}
+      - INITIAL_REVIEWER_PASSWORD=${INITIAL_REVIEWER_PASSWORD:-}
+      - INITIAL_UPLOADER_PASSWORD=${INITIAL_UPLOADER_PASSWORD:-}
+      - INITIAL_VIEWER_PASSWORD=${INITIAL_VIEWER_PASSWORD:-}
+      - OLLAMA_HOST=${OLLAMA_HOST:-http://ollama:11434}
+      - OLLAMA_URL=${OLLAMA_URL:-http://ollama:11434/api/generate}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2:1b}
+      - OLLAMA_TIMEOUT=${OLLAMA_TIMEOUT:-2}
+    volumes:
+      - compliance_data:/app/data
+    networks:
+      - ntro-network
+
+  frontend:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: ntro-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - ntro-network
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ntro-ollama
+    restart: unless-stopped
+    profiles:
+      - with-ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - ntro-network
+
+volumes:
+  compliance_data:
+  ollama_data:
+
+networks:
+  ntro-network:
+    driver: bridge

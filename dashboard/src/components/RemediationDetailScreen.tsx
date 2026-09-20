@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { getRemediation, finalizeAudit } from '../api';
+import { UserIdentity } from '../types';
 
 interface RemediationDetailScreenProps {
   ruleId: string;
   sessionId: string;
   onBackToAudit: () => void;
   onAuditFinalized: (finalizeData: any) => void;
+  currentUser?: UserIdentity | null;
 }
 
 export const RemediationDetailScreen: React.FC<RemediationDetailScreenProps> = ({
   ruleId,
   sessionId,
   onBackToAudit,
-  onAuditFinalized
+  onAuditFinalized,
+  currentUser
 }) => {
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -133,13 +136,18 @@ export const RemediationDetailScreen: React.FC<RemediationDetailScreenProps> = (
         </div>
 
         {/* Finalize Audit Action */}
-        <div>
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          {currentUser?.role === 'viewer' && (
+            <span className="text-xs font-mono text-amber-400 bg-amber-950/40 px-2.5 py-1 rounded border border-amber-800">
+              Viewer Role: Read-only access. Finalize disabled.
+            </span>
+          )}
           <button
             onClick={handleFinalize}
-            disabled={isFinalizing}
+            disabled={isFinalizing || currentUser?.role === 'viewer'}
             className={`px-5 py-2.5 rounded text-xs font-mono font-bold uppercase tracking-wider transition-colors shadow-sm flex items-center gap-2 border cursor-pointer ${
-              isFinalizing
-                ? 'bg-slate-800 text-slate-400 border-slate-700 cursor-not-allowed'
+              isFinalizing || currentUser?.role === 'viewer'
+                ? 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'
                 : 'bg-emerald-600 hover:bg-emerald-500 text-slate-950 border-emerald-400'
             }`}
           >
@@ -198,9 +206,10 @@ export const RemediationDetailScreen: React.FC<RemediationDetailScreenProps> = (
                 Root Cause & Threat Context (Module 4 AI Explainer)
               </h3>
             </div>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
-              LOCAL DISTILBERT EMBEDDINGS
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-purple-300 border border-purple-800/80">
+              AI MODEL MANAGER & AST CONFLICT ENGINE
             </span>
+
           </div>
           <div className="bg-slate-950 border border-slate-800 rounded p-4 text-xs text-slate-300 leading-relaxed font-sans border-l-4 border-l-rose-500">
             {data.why_it_failed}

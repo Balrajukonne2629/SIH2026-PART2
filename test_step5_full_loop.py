@@ -14,6 +14,8 @@ import cisco_auditor
 import remediation_engine
 import report_generator
 
+import database
+
 BASE = pathlib.Path(__file__).parent.resolve()
 CFG_FILE = BASE / "05_Configuration_Datasets" / "Cisco" / "labeled_test_config.txt"
 RULES_FILE = BASE / "07_Compliance_Scanners" / "Rule_Library" / "extracted" / "Rule_Library" / "vendor_rule_mapping.json"
@@ -27,9 +29,25 @@ def main():
     print("PRD ADDENDUM SECTION 4 STEP 5: FULL INTEGRATION LOOP & TAMPER VERIFICATION")
     print("=" * 80)
 
-    # Clean artifacts for reproducible start
-    for f in (PENDING_FILE, TRUSTED_FILE, LOG_FILE, PDF_FILE):
-        if f.exists(): f.unlink()
+    # Isolated clean database for reproducible start without touching production data
+    orig_db_path = database.DB_PATH
+    test_db = database.DATA_DIR / "test_step5_auditor.db"
+    if test_db.exists():
+        test_db.unlink()
+    database.DB_PATH = test_db
+    database.initialize_database()
+
+    conn = database.get_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM audit_sessions")
+    cur.execute("DELETE FROM trusted_mappings")
+    cur.execute("DELETE FROM pending_suggestions")
+    cur.execute("DELETE FROM audit_ledger")
+    conn.commit()
+    conn.close()
+
+    if PDF_FILE.exists():
+        PDF_FILE.unlink()
 
     # Stage 1: Upload / Read Config
     print("\n[STAGE 1] Upload & Read Configuration File:")
@@ -79,9 +97,13 @@ def main():
     }
     rej_id = ai_suggester.store_suggestion(rej_sug, PENDING_FILE)
     ai_suggester.approve_suggestion(rej_id, reviewer_name, "reject", pending_file=PENDING_FILE, trusted_file=TRUSTED_FILE)
-    trusted_post_rej = json.loads(TRUSTED_FILE.read_text(encoding="utf-8")) if TRUSTED_FILE.exists() else []
-    assert not any(e.get("internalTitle") == "Banner check" for e in trusted_post_rej), "Rejected rule must NEVER reach trusted_mappings.json!"
-    print("  [EDGE CASE] Low-confidence suggestion rejected -> confirmed NEVER written to trusted_mappings.json -> PASS")
+    conn = database.get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM trusted_mappings")
+    trusted_post_rej = cur.fetchall()
+    conn.close()
+    assert not any(r["internalTitle"] == "Banner check" for r in trusted_post_rej), "Rejected rule must NEVER reach trusted_mappings table!"
+    print("  [EDGE CASE] Low-confidence suggestion rejected -> confirmed NEVER written to trusted_mappings table -> PASS")
 
     # 5b. approve_with_correction with real corrected_mapping payload
     corrected_payload = {
@@ -99,14 +121,41 @@ def main():
         pending_file=PENDING_FILE,
         trusted_file=TRUSTED_FILE
     )
-    assert TRUSTED_FILE.exists()
-    trusted_data = json.loads(TRUSTED_FILE.read_text(encoding="utf-8"))
+    conn = database.get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM trusted_mappings WHERE vendor_rule_id = ?", (corrected_payload["vendor_rule_id"],))
+    row = cur.fetchone()
+    assert row is not None, "Approved rule must exist in trusted_mappings table!"
+    assert row["internalTitle"] == corrected_payload["internalTitle"]
+    assert row["csmFieldChecked"] == corrected_payload["csmFieldChecked"]
+    assert row["condition"] == corrected_payload["condition"]
+    v_info = json.loads(row["version_info"])
+    assert v_info["approved_by"] == reviewer_name
+    assert v_info["source"] == "ai_suggested"
+
+    cur.execute("SELECT * FROM trusted_mappings")
+    rows = cur.fetchall()
+    conn.close()
+    trusted_data = []
+    for r in rows:
+        trusted_data.append({
+            "vendor_rule_id": r["vendor_rule_id"],
+            "common_rule_id": r["common_rule_id"],
+            "internalTitle": r["internalTitle"],
+            "csmFieldChecked": r["csmFieldChecked"],
+            "condition": r["condition"],
+            "configuration_evidence": json.loads(r["configuration_evidence"]),
+            "check_focus": json.loads(r["check_focus"]),
+            "frameworkMappings": json.loads(r["frameworkMappings"]),
+            "version_info": json.loads(r["version_info"])
+        })
+
     assert trusted_entry["internalTitle"] == corrected_payload["internalTitle"]
     assert trusted_entry["csmFieldChecked"] == corrected_payload["csmFieldChecked"]
     assert trusted_entry["condition"] == corrected_payload["condition"]
     assert trusted_entry["version_info"]["approved_by"] == reviewer_name
     assert trusted_entry["version_info"]["source"] == "ai_suggested"
-    print(f"  [FEATURE] approve_with_correction exercised: written to {TRUSTED_FILE.name} with reviewer payload -> PASS")
+    print(f"  [FEATURE] approve_with_correction exercised: written to trusted_mappings table with reviewer payload -> PASS")
 
     # Stage 6: Re-Audit Evaluation with Approved Rule
     print("\n[STAGE 6] Re-Audit Pipeline Evaluation (Generic Evaluator):")
@@ -215,18 +264,22 @@ def main():
     print("\n" + "=" * 80)
     print("TAMPER TEST: SIMULATE RETROSPECTIVE MODIFICATION IN ENTRY 1")
     print("=" * 80)
-    # Read log entries, tamper with Entry 1
-    lines = LOG_FILE.read_text(encoding="utf-8").splitlines()
-    entry_1_tampered = json.loads(lines[0])
-    # Maliciously change CISCO-NTP-001 from Fail to Pass
-    orig_status = entry_1_tampered["audit_results"]["CISCO-NTP-001"]
-    entry_1_tampered["audit_results"]["CISCO-NTP-001"] = "Pass"
-    lines[0] = json.dumps(entry_1_tampered)
-    TAMPERED_LOG = BASE / "audit_log_tampered.jsonl"
-    TAMPERED_LOG.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    # Read log entries from DB, tamper with Entry 1
+    conn = database.get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM audit_ledger ORDER BY id ASC")
+    rows = cur.fetchall()
+    tamper_id = rows[0]["id"]
+    row_dict = dict(rows[0])
+    results = json.loads(row_dict["audit_results"])
+    orig_status = results.get("CISCO-NTP-001")
+    results["CISCO-NTP-001"] = "Pass"
+    cur.execute("UPDATE audit_ledger SET audit_results = ? WHERE id = ?", (json.dumps(results, sort_keys=True), tamper_id))
+    conn.commit()
+    conn.close()
 
-    tamper_valid, tamper_msg, broken_entry_num = audit_log.verify_chain(TAMPERED_LOG)
-    print(f"  Tamper Test Log: {TAMPERED_LOG.name}")
+    tamper_valid, tamper_msg, broken_entry_num = audit_log.verify_chain()
+    print(f"  Tamper Test Database: {database.DB_PATH.name}")
     print(f"  Mod: entry 1 audit_results['CISCO-NTP-001']: '{orig_status}' -> 'Pass'")
     print(f"  verify_chain() Result: {tamper_valid}")
     print(f"  Detection Message:     {tamper_msg}")
@@ -234,9 +287,6 @@ def main():
     assert tamper_valid is False, "verify_chain must detect tampering!"
     assert broken_entry_num == 1, "verify_chain must identify entry 1 as broken!"
     print("  Tamper Detection Test -> PASS (Correctly identified modification in Entry 1)")
-
-    # Clean temporary tampered file
-    TAMPERED_LOG.unlink()
 
     # Stage 17: Deterministic Path Performance Measurement (PRD Addendum §2)
     print("\n" + "=" * 80)
@@ -256,6 +306,19 @@ def main():
     print("=" * 80)
     print("ALL 17 STAGES & ACCEPTANCE CRITERIA VERIFIED SUCCESSFULLY.")
     print("=" * 80)
+
+    # Clean isolated DB and artifacts
+    if test_db.exists():
+        test_db.unlink()
+    database.DB_PATH = orig_db_path
+    if PDF_FILE.exists():
+        PDF_FILE.unlink()
+
+
+def test_step5_full_loop():
+    """Pytest-discoverable entrypoint for PRD Step 5 full loop integration test."""
+    main()
+
 
 if __name__ == "__main__":
     main()

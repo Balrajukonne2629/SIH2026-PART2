@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { suggestMapping, approveSuggestion } from '../api';
+import { UserIdentity } from '../types';
 
 interface AiSuggestionReviewScreenProps {
   unmappedLine: string;
   sessionId?: string;
+  currentUser?: UserIdentity | null;
   onApprovalCompleted: () => void;
   onBackToAudit: () => void;
 }
@@ -11,6 +13,7 @@ interface AiSuggestionReviewScreenProps {
 export const AiSuggestionReviewScreen: React.FC<AiSuggestionReviewScreenProps> = ({
   unmappedLine,
   sessionId,
+  currentUser,
   onApprovalCompleted,
   onBackToAudit
 }) => {
@@ -20,7 +23,6 @@ export const AiSuggestionReviewScreen: React.FC<AiSuggestionReviewScreenProps> =
   const [suggestionError, setSuggestionError] = useState<string | null>(null);
 
   // Reviewer form state
-  const [reviewerName, setReviewerName] = useState('SecOps_Lead_Reviewer');
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [editField, setEditField] = useState('');
@@ -76,7 +78,6 @@ export const AiSuggestionReviewScreen: React.FC<AiSuggestionReviewScreenProps> =
 
       const res = await approveSuggestion({
         suggestion_id: suggestionId,
-        reviewer_name: reviewerName,
         decision,
         corrected_mapping: correctedMapping,
         session_id: sessionId
@@ -94,7 +95,8 @@ export const AiSuggestionReviewScreen: React.FC<AiSuggestionReviewScreenProps> =
     return (
       <div className="bg-slate-900 border border-slate-800 rounded p-12 text-center font-mono text-xs text-slate-300 space-y-3">
         <div className="w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto"></div>
-        <div>Running local DistilBERT (66M) semantic inference on CLI line: <code className="text-amber-300 font-bold">{unmappedLine}</code>...</div>
+        <div>Running local semantic similarity (DistilBERT-66M) & AI rationale generation on CLI line: <code className="text-amber-300 font-bold">{unmappedLine}</code>...</div>
+
       </div>
     );
   }
@@ -236,8 +238,9 @@ export const AiSuggestionReviewScreen: React.FC<AiSuggestionReviewScreenProps> =
             <div className="flex items-center space-x-2">
               <span className="w-2 h-2 rounded-full bg-amber-400"></span>
               <span className="text-xs font-mono font-bold uppercase text-slate-200">
-                Local AI Model Inference (DistilBERT-66M)
+                Local AI Pipeline (DistilBERT-66M Similarity + AI Runtime Rationale)
               </span>
+
             </div>
             <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800">
               AI BEST GUESS — UNVERIFIED
@@ -365,28 +368,41 @@ export const AiSuggestionReviewScreen: React.FC<AiSuggestionReviewScreenProps> =
         {/* Section 3: Reviewer Sign-Off Stamp & Action Buttons */}
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-slate-950 rounded border border-slate-800">
-            <div className="flex items-center space-x-3">
-              <label className="text-xs font-mono text-slate-400 uppercase font-semibold">
-                Authorized Reviewer ID:
-              </label>
-              <input
-                type="text"
-                disabled={!!submitSuccess}
-                value={reviewerName}
-                onChange={(e) => setReviewerName(e.target.value)}
-                className="bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs font-mono text-sky-300 focus:border-sky-500 focus:outline-none"
-              />
+            <div className="flex items-center space-x-3 text-xs font-mono">
+              <span className="text-slate-400 uppercase font-semibold">
+                Authoritative Reviewer Identity:
+              </span>
+              <span className="text-sky-400 font-bold bg-slate-900 px-2.5 py-1 rounded border border-slate-800">
+                {currentUser?.username || 'Authenticated Reviewer'}
+              </span>
+              <span className="text-[10px] text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800">
+                Cryptographically bound via JWT claims (§4)
+              </span>
+            </div>
+            <div className="text-xs font-mono">
+              <span className="text-slate-500 uppercase">Approver Status: </span>
+              {currentUser?.is_authorized_approver ? (
+                <span className="text-emerald-400 font-bold">AUTHORIZED</span>
+              ) : (
+                <span className="text-rose-400 font-bold">UNAUTHORIZED (Read-Only)</span>
+              )}
             </div>
           </div>
+
+          {!currentUser?.is_authorized_approver && (
+            <div className="bg-amber-950/40 border border-amber-800 text-amber-300 text-xs rounded p-3 font-mono">
+              <strong>Notice:</strong> Rule approval requires SecOps Reviewer authorization (<code className="text-amber-200">is_authorized_approver: true</code>). Approval actions are disabled for role <code className="text-sky-300">{currentUser?.role || 'operator'}</code>.
+            </div>
+          )}
 
           {/* Action Buttons */}
           {!submitSuccess ? (
             <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
               <button
                 type="button"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !currentUser?.is_authorized_approver}
                 onClick={() => handleDecision('reject')}
-                className="px-4 py-2 bg-rose-950 hover:bg-rose-900 text-rose-300 border border-rose-800 rounded text-xs font-mono font-bold uppercase transition-colors cursor-pointer disabled:opacity-50"
+                className="px-4 py-2 bg-rose-950 hover:bg-rose-900 text-rose-300 border border-rose-800 rounded text-xs font-mono font-bold uppercase transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? 'Submitting...' : 'Reject Suggestion'}
               </button>
@@ -394,18 +410,18 @@ export const AiSuggestionReviewScreen: React.FC<AiSuggestionReviewScreenProps> =
               {!isEditing ? (
                 <button
                   type="button"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !currentUser?.is_authorized_approver}
                   onClick={() => setIsEditing(true)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded text-xs font-mono font-bold uppercase transition-colors cursor-pointer"
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded text-xs font-mono font-bold uppercase transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Edit / Correct Details...
                 </button>
               ) : (
                 <button
                   type="button"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !currentUser?.is_authorized_approver}
                   onClick={() => handleDecision('approve_with_correction')}
-                  className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white border border-sky-400 rounded text-xs font-mono font-bold uppercase transition-colors cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white border border-sky-400 rounded text-xs font-mono font-bold uppercase transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? 'Submitting...' : 'Approve with Correction'}
                 </button>
@@ -414,9 +430,9 @@ export const AiSuggestionReviewScreen: React.FC<AiSuggestionReviewScreenProps> =
               {!isEditing && (
                 <button
                   type="button"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !currentUser?.is_authorized_approver}
                   onClick={() => handleDecision('approve')}
-                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-slate-950 border border-emerald-400 rounded text-xs font-mono font-bold uppercase transition-colors cursor-pointer shadow-sm disabled:opacity-50"
+                  className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-slate-950 border border-emerald-400 rounded text-xs font-mono font-bold uppercase transition-colors cursor-pointer shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? 'Submitting...' : 'Approve as Trusted Rule'}
                 </button>

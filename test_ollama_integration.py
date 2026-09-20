@@ -256,7 +256,7 @@ def generate_completion(
         raise
 
 
-def test_offline_capability(model: str, prompt: str, base_url: str = OLLAMA_HOST) -> dict:
+def verify_offline_capability(model: str, prompt: str, base_url: str = OLLAMA_HOST) -> dict:
     """Requirement 5: Test in simulated/verified offline shell with external network disconnected.
     Blocks TCP socket connections, UDP transmissions, and DNS resolutions to non-loopback destinations.
     Fails loudly if network leaks or if inference fails offline.
@@ -479,6 +479,11 @@ def run_self_tests():
     print("  [OK] Offline network isolation guard: Verified external connection interception.")
 
     print("[+] All self-tests passed successfully!")
+ 
+ 
+def test_ollama_self_tests():
+    """Pytest-discoverable unit check for internal formatting, model selection, and offline guard logic."""
+    run_self_tests()
 
 
 def main():
@@ -523,7 +528,7 @@ def main():
     print(f"Generation Speed: {baseline_res['tokens_per_sec']:.2f} tokens/second")
 
     # 5. Offline verification (fails loudly if unsuccessful)
-    offline_res = test_offline_capability(model, NTP_AUDIT_PROMPT, base_url=OLLAMA_HOST)
+    offline_res = verify_offline_capability(model, NTP_AUDIT_PROMPT, base_url=OLLAMA_HOST)
     offline_passed = offline_res is not None and len(offline_res.get("response", "")) > 0
 
     # 6. Run the SAME prompt 5 times, print all 5 outputs side by side (variance test)

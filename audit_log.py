@@ -1,13 +1,15 @@
 """Append-Only Hash-Chained Audit Logger (PRD Addendum Section 4 Step 5).
-Records tamper-evident compliance audit entries into audit_log.jsonl.
+Records tamper-evident compliance audit entries into SQLite table audit_ledger.
 Each entry links cryptographically to the preceding entry's entryHash.
 Provides standalone verify_chain() to detect any retrospective modifications.
+Accepts legacy logfile parameter for backward compatibility with existing callers.
 """
 import datetime
 import hashlib
 import json
 import pathlib
 from typing import Optional, Tuple
+import database
 
 BASE = pathlib.Path(__file__).parent.resolve()
 DEFAULT_LOG_FILE = BASE / "audit_log.jsonl"
@@ -20,16 +22,24 @@ def compute_entry_hash(entry_data: dict) -> str:
     return hashlib.sha256(canonical_json.encode("utf-8")).hexdigest()
 
 def get_last_entry(logfile: pathlib.Path = DEFAULT_LOG_FILE) -> Optional[dict]:
-    """Reads the last line of the jsonl log to retrieve the previous entryHash."""
-    if not logfile.exists():
-        return None
-    lines = [l.strip() for l in logfile.read_text(encoding="utf-8").splitlines() if l.strip()]
-    if not lines:
-        return None
-    try:
-        return json.loads(lines[-1])
-    except Exception:
-        return None
+    """Reads the last entry of the sqlite log to retrieve the previous entryHash."""
+    conn = database.get_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM audit_ledger ORDER BY id DESC LIMIT 1')
+    row = cur.fetchone()
+    conn.close()
+    if row:
+        return {
+            "entry_id": row["entry_id"],
+            "timestamp": row["timestamp"],
+            "device_hostname": row["device_hostname"],
+            "config_file_hash": row["config_file_hash"],
+            "audit_results": json.loads(row["audit_results"]) if row["audit_results"] else {},
+            "remediation_summary": json.loads(row["remediation_summary"]) if row["remediation_summary"] is not None else None,
+            "prevEntryHash": row["prevEntryHash"],
+            "entryHash": row["entryHash"]
+        }
+    return None
 
 def create_audit_entry(csm: dict,
                        evals: dict,
@@ -44,9 +54,12 @@ def create_audit_entry(csm: dict,
     ts = now.isoformat()
     config_hash = hashlib.sha256(raw_config_text.encode("utf-8")).hexdigest()
 
-    existing_count = 0
-    if logfile.exists():
-        existing_count = len([l for l in logfile.read_text(encoding="utf-8").splitlines() if l.strip()])
+    conn = database.get_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT COUNT(*) FROM audit_ledger')
+    existing_count = cur.fetchone()[0]
+    conn.close()
+    
     seq = existing_count + 1
 
     # Form minimal clean audit_results dict: {rule_id: status}
@@ -67,29 +80,59 @@ def create_audit_entry(csm: dict,
     return entry_core
 
 def append_audit_entry(entry: dict, logfile: pathlib.Path = DEFAULT_LOG_FILE) -> str:
-    """Appends an audit entry as a single line of JSON to audit_log.jsonl."""
-    line = json.dumps(entry, sort_keys=True)
-    with logfile.open("a", encoding="utf-8") as f:
-        f.write(line + "\n")
+    """Appends an audit entry into SQLite.
+    
+    Uses sort_keys=True for JSON columns so that json.loads → json.dumps(sort_keys=True)
+    in verify_chain produces the same canonical bytes as compute_entry_hash used at creation.
+    """
+    conn = database.get_connection()
+    cur = conn.cursor()
+    cur.execute('''
+        INSERT INTO audit_ledger 
+        (entry_id, timestamp, device_hostname, config_file_hash, audit_results, remediation_summary, prevEntryHash, entryHash)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (
+        entry.get("entry_id"),
+        entry.get("timestamp"),
+        entry.get("device_hostname"),
+        entry.get("config_file_hash"),
+        json.dumps(entry.get("audit_results"), sort_keys=True),
+        json.dumps(entry.get("remediation_summary"), sort_keys=True),
+        entry.get("prevEntryHash"),
+        entry.get("entryHash")
+    ))
+    conn.commit()
+    conn.close()
     return entry["entryHash"]
 
 def verify_chain(logfile: pathlib.Path = DEFAULT_LOG_FILE) -> Tuple[bool, str, int]:
-    """Re-walks entire logfile, recalculates all hashes, and verifies prevEntryHash linkage.
+    """Re-walks entire log table, recalculates all hashes, and verifies prevEntryHash linkage.
     Returns (is_valid, message, broken_entry_index).
     """
-    if not logfile.exists():
-        return False, f"Log file '{logfile.name}' does not exist.", -1
-
-    lines = [l.strip() for l in logfile.read_text(encoding="utf-8").splitlines() if l.strip()]
-    if not lines:
-        return False, "Log file is empty.", -1
+    conn = database.get_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM audit_ledger ORDER BY id ASC')
+    rows = cur.fetchall()
+    conn.close()
+    
+    if not rows:
+        return False, "Log table is empty.", -1
 
     expected_prev = GENESIS_PREV_HASH
-    for idx, raw_line in enumerate(lines):
+    for idx, row in enumerate(rows):
         try:
-            entry = json.loads(raw_line)
-        except json.JSONDecodeError as err:
-            return False, f"JSON parse error on entry {idx + 1}: {err}", idx + 1
+            entry = {
+                "entry_id": row["entry_id"],
+                "timestamp": row["timestamp"],
+                "device_hostname": row["device_hostname"],
+                "config_file_hash": row["config_file_hash"],
+                "audit_results": json.loads(row["audit_results"]) if row["audit_results"] else {},
+                "remediation_summary": json.loads(row["remediation_summary"]) if row["remediation_summary"] is not None else None,
+                "prevEntryHash": row["prevEntryHash"],
+                "entryHash": row["entryHash"]
+            }
+        except Exception as err:
+            return False, f"Row parse error on entry {idx + 1}: {err}", idx + 1
 
         stored_entry_hash = entry.get("entryHash")
         stored_prev_hash = entry.get("prevEntryHash")
@@ -115,4 +158,4 @@ def verify_chain(logfile: pathlib.Path = DEFAULT_LOG_FILE) -> Tuple[bool, str, i
 
         expected_prev = stored_entry_hash
 
-    return True, f"All {len(lines)} log entries verified successfully. Hash chain intact.", 0
+    return True, f"All {len(rows)} log entries verified successfully. Hash chain intact.", 0

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { uploadAuditConfig, getLedger } from '../api';
 import { formatToIST } from '../utils';
+import { UserIdentity } from '../types';
 
 interface UploadScreenProps {
   onAuditStarted: (sessionId: string, initialResults: any) => void;
   onNavigateToLedger: () => void;
+  currentUser?: UserIdentity | null;
 }
 
 const SAMPLE_CONFIG = `! Labeled Reference Configuration - Cisco IOS-XE
@@ -83,7 +85,8 @@ end`;
 
 export const UploadScreen: React.FC<UploadScreenProps> = ({
   onAuditStarted,
-  onNavigateToLedger
+  onNavigateToLedger,
+  currentUser
 }) => {
   const [dragActive, setDragActive] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState<string>('labeled_test_config.txt');
@@ -312,14 +315,19 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
               </div>
 
               {/* Action Button */}
-              <div className="flex justify-end items-center gap-3">
+              <div className="flex flex-col sm:flex-row justify-end items-center gap-3">
+                {currentUser?.role === 'viewer' && (
+                  <span className="text-xs font-mono text-amber-400 bg-amber-950/40 px-2.5 py-1 rounded border border-amber-800">
+                    Viewer Role: Read-only access. Ingestion disabled.
+                  </span>
+                )}
                 <button
                   type="button"
-                  disabled={isUploading}
+                  disabled={isUploading || currentUser?.role === 'viewer'}
                   onClick={handleExecuteAudit}
                   className={`px-6 py-2.5 rounded text-xs font-bold uppercase tracking-wider transition-colors shadow-sm flex items-center gap-2 border cursor-pointer ${
-                    isUploading
-                      ? 'bg-slate-800 text-slate-400 border-slate-700 cursor-not-allowed'
+                    isUploading || currentUser?.role === 'viewer'
+                      ? 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'
                       : 'bg-sky-600 hover:bg-sky-500 text-white border-sky-400'
                   }`}
                 >

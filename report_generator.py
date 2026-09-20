@@ -4,7 +4,7 @@ Generates publication-quality audit certificates showing:
 2. Full compliance results table with visually distinct Pass/Fail/Unknown status badges
 3. Remediation commands, static conflict warnings, and AI explanations for failed controls
 4. Embedded cryptographic audit log entryHash and verification QR Code.
-5. verify_report_hash() to independently validate PDF authenticity against audit_log.jsonl.
+5. verify_report_hash() to independently validate PDF authenticity against SQLite audit_ledger.
 """
 import json
 import pathlib
@@ -290,8 +290,6 @@ def verify_report_hash(pdf_path: pathlib.Path = DEFAULT_PDF_FILE,
     """Reads embedded hash from PDF document and validates against audit_log.jsonl."""
     if not pdf_path.exists():
         return False, f"PDF report '{pdf_path}' not found."
-    if not logfile.exists():
-        return False, f"Audit log '{logfile}' not found."
 
     reader = pypdf.PdfReader(str(pdf_path))
     meta_subject = reader.metadata.get("/Subject", "") if reader.metadata else ""
@@ -309,19 +307,26 @@ def verify_report_hash(pdf_path: pathlib.Path = DEFAULT_PDF_FILE,
     if not embedded_hash:
         return False, "Failed to extract audit entryHash from PDF document."
 
-    lines = [l.strip() for l in logfile.read_text(encoding="utf-8").splitlines() if l.strip()]
-    matching_entry = None
-    for line in lines:
-        try:
-            entry = json.loads(line)
-            if entry.get("entryHash") == embedded_hash:
-                matching_entry = entry
-                break
-        except Exception:
-            continue
+    import database
+    conn = database.get_connection()
+    cur = conn.cursor()
+    cur.execute('SELECT * FROM audit_ledger WHERE entryHash = ?', (embedded_hash,))
+    row = cur.fetchone()
+    conn.close()
 
-    if not matching_entry:
+    if not row:
         return False, f"Extracted hash '{embedded_hash[:16]}...' does NOT exist in audit log."
+
+    matching_entry = {
+        "entry_id": row["entry_id"],
+        "timestamp": row["timestamp"],
+        "device_hostname": row["device_hostname"],
+        "config_file_hash": row["config_file_hash"],
+        "audit_results": json.loads(row["audit_results"]) if row["audit_results"] else {},
+        "remediation_summary": json.loads(row["remediation_summary"]) if row["remediation_summary"] else None,
+        "prevEntryHash": row["prevEntryHash"],
+        "entryHash": row["entryHash"]
+    }
 
     # Validate integrity of the matching log entry
     from audit_log import compute_entry_hash

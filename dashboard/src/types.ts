@@ -89,3 +89,55 @@ export interface RecentAudit {
   };
   overallStatus: 'COMPLIANT' | 'NON-COMPLIANT' | 'NEEDS-REVIEW';
 }
+
+export interface UserIdentity {
+  user_id: string;
+  username: string;
+  role: 'uploader' | 'reviewer' | 'viewer';
+  is_authorized_approver: boolean;
+}
+
+export interface LoginResponse {
+  access_token: string;
+  token_type: string;
+  user: UserIdentity;
+}
+
+export type ScreenId = 'upload' | 'results' | 'ai_review' | 'remediation' | 'audit_log' | 'model_ops';
+
+export type ModelMode = 'auto' | 'fast' | 'quality' | 'override';
+
+export interface HardwareProfile {
+  total_ram_gb: number;
+  available_ram_gb: number;
+  cpu_cores: number;
+  cpu_threads: number;
+  has_gpu: boolean;
+  gpu_type: string;
+  vram_gb: number;
+  gpu_name: string | null;
+  probe_error: string | null;
+}
+
+export interface ModelStatus {
+  mode: ModelMode;
+  configured_mode: ModelMode;
+  effective_model: string;
+  override_model: string | null;
+  available_models: string[];
+  hardware_profile: HardwareProfile;
+  ollama_alive: boolean;
+  fallback_active: boolean;
+  fallback_reason: string | null;
+}
+
+export interface ModelModeUpdateRequest {
+  mode: ModelMode;
+  override_model?: string | null;
+}
+
+export interface ModelModeUpdateResponse extends ModelStatus {
+  success: boolean;
+  message: string;
+}
+

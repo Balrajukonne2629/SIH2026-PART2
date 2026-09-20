@@ -50,6 +50,10 @@ dist/
 .env.test.local
 .env.production.local
 *.env
+.jwt_secret
+*.jwt_secret
+data/.jwt_secret
+
 
 # IDEs and Editors
 .vscode/

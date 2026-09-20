@@ -1,23 +1,100 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { UploadScreen } from './components/UploadScreen';
 import { AuditResultsScreen } from './components/AuditResultsScreen';
 import { AiSuggestionReviewScreen } from './components/AiSuggestionReviewScreen';
 import { RemediationDetailScreen } from './components/RemediationDetailScreen';
 import { AuditLogReportScreen } from './components/AuditLogReportScreen';
+import { AiModelManagerScreen } from './components/AiModelManagerScreen';
+import { LoginScreen } from './components/LoginScreen';
+import { UserIdentity, ScreenId } from './types';
+import { getAccessToken, getCurrentUser, clearAccessToken, onUnauthorized, getModelStatus } from './api';
 
 export const App: React.FC = () => {
-  const [currentScreen, setCurrentScreen] = useState<
-    'upload' | 'results' | 'ai_review' | 'remediation' | 'audit_log'
-  >('upload');
+  const [currentUser, setCurrentUser] = useState<UserIdentity | null>(null);
+  const [authLoading, setAuthLoading] = useState<boolean>(true);
+
+  const [currentScreen, setCurrentScreen] = useState<ScreenId>('upload');
+
+  // Live model runtime status for top classification bar
+  const [liveModelMode, setLiveModelMode] = useState<string>('auto');
+  const [liveOllamaAlive, setLiveOllamaAlive] = useState<boolean>(true);
 
   // Real active session state (Prop-drilled across screens)
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+
   const [cachedResults, setCachedResults] = useState<any>(null);
   const [activeUnmappedLine, setActiveUnmappedLine] = useState<string>('service call-home');
   const [activeRemediationRuleId, setActiveRemediationRuleId] = useState<string>('CISCO-NTP-001');
 
+  // Check existing session on mount & register 401 callback
+  useEffect(() => {
+    let isMounted = true;
+
+    const initAuth = async () => {
+      const token = getAccessToken();
+      if (!token) {
+        if (isMounted) setAuthLoading(false);
+        return;
+      }
+      try {
+        const user = await getCurrentUser();
+        if (isMounted) setCurrentUser(user);
+        try {
+          const modelStat = await getModelStatus();
+          if (isMounted) {
+            setLiveModelMode(modelStat.mode);
+            setLiveOllamaAlive(modelStat.ollama_alive);
+          }
+        } catch {
+          // Model status fetch failure is non-fatal for auth
+        }
+      } catch {
+        clearAccessToken();
+        if (isMounted) setCurrentUser(null);
+      } finally {
+        if (isMounted) setAuthLoading(false);
+      }
+    };
+
+    initAuth();
+
+
+    // Centralized 401 handler: immediately resets auth state without page reload
+    const unsubscribe = onUnauthorized(() => {
+      if (isMounted) {
+        setCurrentUser(null);
+        setActiveSessionId(null);
+        setCachedResults(null);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsubscribe();
+    };
+  }, []);
+
   // Screen transition handlers
+  const handleLoginSuccess = (user: UserIdentity) => {
+    setCurrentUser(user);
+    getModelStatus()
+      .then((stat) => {
+        setLiveModelMode(stat.mode);
+        setLiveOllamaAlive(stat.ollama_alive);
+      })
+      .catch(() => {});
+  };
+
+
+  const handleLogout = () => {
+    clearAccessToken();
+    setCurrentUser(null);
+    setActiveSessionId(null);
+    setCachedResults(null);
+    setCurrentScreen('upload');
+  };
+
   const handleAuditStarted = (sessionId: string, initialResults: any) => {
     setActiveSessionId(sessionId);
     setCachedResults(initialResults);
@@ -46,6 +123,21 @@ export const App: React.FC = () => {
 
   const unmappedCount = cachedResults?.unmapped_lines?.length ?? 0;
 
+  // Gate privileged interface while initializing
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center font-mono text-xs text-slate-400 space-y-3">
+        <div className="w-8 h-8 border-2 border-sky-400 border-t-transparent rounded-full animate-spin"></div>
+        <div>INITIALIZING OPERATOR SECURITY CONTEXT...</div>
+      </div>
+    );
+  }
+
+  // If unauthenticated, display the login screen
+  if (!currentUser) {
+    return <LoginScreen onLoginSuccess={handleLoginSuccess} />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-sky-500 selection:text-white">
       {/* Top SOC Navigation Bar */}
@@ -53,6 +145,10 @@ export const App: React.FC = () => {
         currentScreen={currentScreen}
         onNavigate={(screen) => setCurrentScreen(screen)}
         unmappedCount={unmappedCount}
+        currentUser={currentUser}
+        onLogout={handleLogout}
+        modelMode={liveModelMode}
+        ollamaAlive={liveOllamaAlive}
       />
 
       {/* Main Screen Content Body */}
@@ -61,6 +157,7 @@ export const App: React.FC = () => {
           <UploadScreen
             onAuditStarted={handleAuditStarted}
             onNavigateToLedger={() => setCurrentScreen('audit_log')}
+            currentUser={currentUser}
           />
         )}
 
@@ -93,6 +190,7 @@ export const App: React.FC = () => {
           <AiSuggestionReviewScreen
             unmappedLine={activeUnmappedLine}
             sessionId={activeSessionId || undefined}
+            currentUser={currentUser}
             onApprovalCompleted={handleApprovalCompleted}
             onBackToAudit={() => setCurrentScreen('results')}
           />
@@ -103,6 +201,7 @@ export const App: React.FC = () => {
             <RemediationDetailScreen
               ruleId={activeRemediationRuleId}
               sessionId={activeSessionId}
+              currentUser={currentUser}
               onBackToAudit={() => setCurrentScreen('results')}
               onAuditFinalized={handleAuditFinalized}
             />
@@ -125,7 +224,15 @@ export const App: React.FC = () => {
         {currentScreen === 'audit_log' && (
           <AuditLogReportScreen />
         )}
+
+        {currentScreen === 'model_ops' && (
+          <AiModelManagerScreen
+            currentUser={currentUser}
+            onNavigateToReview={() => setCurrentScreen('ai_review')}
+          />
+        )}
       </main>
+
 
       {/* Footer Classification & Compliance Watermark */}
       <footer className="bg-slate-950 border-t border-slate-900 py-3 px-4 text-center font-mono text-[11px] text-slate-500">
