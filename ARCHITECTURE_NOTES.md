@@ -123,3 +123,58 @@ Adding a new vendor (e.g., **Juniper Junos** or **Arista EOS**) requires adding 
    - `audit_log.py` takes `{device_hostname, config_file_hash, audit_results, remediation_summary}`. It does not inspect vendor specifics.
    - `report_generator.py` formats the evaluated results table dynamically based on the rule list, rendering identical cryptographic certificates regardless of underlying hardware.
 
+---
+
+## 4. Phase 1: Scalable Vendor Foundation Architecture
+
+### Architectural Shift
+
+The configuration ingestion and parsing boundary has been refactored from direct Cisco coupling into an extensible, multi-vendor foundation.
+
+#### CURRENT (Phase 1 Implemented):
+
+```
+Configuration Upload (.cfg / .txt / JSON)
+               ↓
+Unified Ingestion (`ingest_configuration`)
+               ↓
+Vendor Detection / Selection Boundary (`detect_confidence` / `vendor` param)
+               ↓
+Vendor Registry (`VendorRegistry` / `get_default_vendor_registry`)
+               ↓
+Cisco Adapter (`CiscoVendorAdapter`)
+               ↓
+Common Security Model (CSM)
+               ↓
+Deterministic Multi-Framework Compliance Engine (`FrameworkRegistry` / `FrameworkEvaluator`)
+               ↓
+Evidence Consolidation & Scoring (`MultiFrameworkAggregator`)
+               ↓
+Audit Ledger & PDF Reporting (`audit_log.py` / `report_generator.py`)
+```
+
+#### FUTURE (Target Multi-Vendor Architecture):
+
+```
+Configuration Upload
+       ↓
+Vendor Detection
+       ↓
+Vendor Registry
+       ↓
+Cisco / Juniper / Arista / Fortinet / Palo Alto adapters
+       ↓
+Common Security Model (CSM)
+       ↓
+Common Compliance Engine
+```
+
+### Architectural Property & Extension Principle
+
+> **Adding a new vendor should require a new adapter/parser, vendor-specific rules/framework mappings where applicable, and tests — not modification of the core compliance engine.**
+
+The core compliance engine (`compliance_framework.py`, `compliance_aggregator.py`, `cis_benchmark_cisco_iosxe.py`, `disa_stig_cisco_iosxe.py`) operates strictly upon normalized CSM data models and remains completely vendor-neutral without vendor-specific branching or parser imports.
+
+*Note: Future vendors (Juniper, Arista, Fortinet, Palo Alto) are NOT implemented in Phase 1. The architecture provides the registered contract (`VendorAdapter`) and clearinghouse (`VendorRegistry`) to onboard future vendors cleanly in Phase 2.*
+
+

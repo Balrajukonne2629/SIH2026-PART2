@@ -63,9 +63,15 @@ from pydantic import BaseModel
 import ai_model_manager
 import ai_suggester
 import audit_log
-import cisco_auditor
 import remediation_engine
 import report_generator
+import vendor_registry
+from vendor_registry import (
+    get_default_vendor_registry,
+    ingest_configuration,
+    UnsupportedVendorError,
+    UndeterminedVendorError,
+)
 
 BASE_DIR = pathlib.Path(__file__).parent.resolve()
 RULES_FILE = BASE_DIR / "07_Compliance_Scanners" / "Rule_Library" / "extracted" / "Rule_Library" / "vendor_rule_mapping.json"
@@ -207,6 +213,7 @@ class ComplianceEvaluateRequest(BaseModel):
     session_id: Optional[str] = None
     csm: Optional[Dict[str, Any]] = None
     raw_config: Optional[str] = None
+    vendor: Optional[str] = None
     framework_ids: Optional[List[str]] = None
 
 
@@ -456,11 +463,12 @@ async def audit_upload(
     request: Request,
     file: Optional[UploadFile] = File(None),
     raw_config: Optional[str] = Form(None),
+    vendor: Optional[str] = Form(None),
     current_user: Dict[str, Any] = Depends(require_role("uploader", "reviewer"))
 ):
     """Accepts uploaded config file (multipart) or raw text.
-    Runs parse_cisco() + evaluate_rules().
-    Caches results in-memory keyed by session_id.
+    Runs unified ingestion boundary (detection/selection -> vendor adapter -> CSM).
+    Evaluates baseline rules and caches results in-memory keyed by session_id.
     Does NOT write to audit_log yet.
     """
     text = ""
@@ -472,6 +480,7 @@ async def audit_upload(
             body = await request.json()
             text = body.get("raw_config", "")
             filename = body.get("filename", filename)
+            vendor = body.get("vendor", vendor)
         except Exception as e:
             raise HTTPException(status_code=400, detail=f"Malformed JSON request: {e}")
     elif file is not None:
@@ -493,9 +502,14 @@ async def audit_upload(
         baseline_rules = load_baseline_rules()
         trusted_rules = load_trusted_rules()
 
-        # Step 1 & 2: Parse to CSM and evaluate baseline + trusted rules
-        csm = cisco_auditor.parse_cisco(text, filename=filename, trusted_rules=trusted_rules)
-        evals = cisco_auditor.evaluate_rules(csm, baseline_rules, trusted_rules=trusted_rules)
+        # Step 1 & 2: Ingest configuration through vendor boundary and evaluate baseline rules
+        csm, adapter = ingest_configuration(
+            raw_text=text,
+            filename=filename,
+            vendor=vendor,
+            trusted_rules=trusted_rules,
+        )
+        evals = adapter.evaluate_legacy_rules(csm, baseline_rules, trusted_rules=trusted_rules)
         config_hash = hashlib.sha256(text.encode("utf-8")).hexdigest()
 
         session_id = str(uuid.uuid4())
@@ -518,7 +532,7 @@ async def audit_upload(
         return {
             "session_id": session_id,
             "device_hostname": csm.get("device", {}).get("hostname", "unknown"),
-            "platform": csm.get("device", {}).get("platform", "IOS-XE"),
+            "platform": csm.get("device", {}).get("platform") or "unknown",
             "config_file_hash": config_hash,
             "summary": {
                 "total": len(evals),
@@ -535,6 +549,10 @@ async def audit_upload(
             "rule_results": evals,
             "unmapped_lines": csm.get("unmapped_lines", [])
         }
+    except (UnsupportedVendorError, UndeterminedVendorError) as ve:
+        raise HTTPException(status_code=422, detail=str(ve))
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Audit parsing failed: {e}")
 
@@ -556,7 +574,7 @@ async def get_audit_results(
     return {
         "session_id": session_id,
         "device_hostname": session["csm"].get("device", {}).get("hostname", "unknown"),
-        "platform": session["csm"].get("device", {}).get("platform", "IOS-XE"),
+        "platform": session["csm"].get("device", {}).get("platform") or "unknown",
         "config_file_hash": session["config_file_hash"],
         "summary": {
             "total": len(evals),
@@ -630,13 +648,16 @@ async def ai_approve(
             baseline_rules = load_baseline_rules()
             trusted_rules = load_trusted_rules()
     
-            # Re-parse and re-evaluate
-            csm_re = cisco_auditor.parse_cisco(
+            # Re-parse and re-evaluate via registered vendor adapter
+            session_vendor = session["csm"].get("device", {}).get("vendor", "cisco")
+            reg = get_default_vendor_registry()
+            adapter = reg.get(session_vendor)
+            csm_re = adapter.parse(
                 session["raw_config_text"],
                 filename=session["filename"],
                 trusted_rules=trusted_rules
             )
-            evals_re = cisco_auditor.evaluate_rules(csm_re, baseline_rules, trusted_rules=trusted_rules)
+            evals_re = adapter.evaluate_legacy_rules(csm_re, baseline_rules, trusted_rules=trusted_rules)
     
             session["csm"] = csm_re
             session["evals"] = evals_re
@@ -956,8 +977,14 @@ async def evaluate_compliance(
             raise HTTPException(status_code=422, detail="raw_config must not be empty.")
         try:
             trusted_rules = load_trusted_rules()
-            csm = cisco_auditor.parse_cisco(req.raw_config, trusted_rules=trusted_rules)
+            csm, _ = ingest_configuration(
+                raw_text=req.raw_config,
+                vendor=req.vendor,
+                trusted_rules=trusted_rules,
+            )
             device_hostname = csm.get("device", {}).get("hostname", "unknown")
+        except (UnsupportedVendorError, UndeterminedVendorError) as ve:
+            raise HTTPException(status_code=422, detail=str(ve))
         except Exception as e:
             raise HTTPException(status_code=422, detail=f"Failed to parse raw_config into CSM: {e}")
     else:
