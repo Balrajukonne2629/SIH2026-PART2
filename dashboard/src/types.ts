@@ -105,7 +105,7 @@ export interface LoginResponse {
 
 export type ScreenId = 'upload' | 'results' | 'ai_review' | 'remediation' | 'audit_log' | 'model_ops';
 
-export type ModelMode = 'auto' | 'fast' | 'quality' | 'override';
+export type ModelMode = 'auto' | 'fast' | 'quality' | 'override' | 'deterministic_only';
 
 export interface HardwareProfile {
   total_ram_gb: number;

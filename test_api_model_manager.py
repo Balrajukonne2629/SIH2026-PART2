@@ -108,7 +108,7 @@ def test_status_accessible_by_uploader(uploader_token):
     res = client.get("/api/model/status", headers={"Authorization": f"Bearer {uploader_token}"})
     assert res.status_code == 200
     data = res.json()
-    assert data["configured_mode"] in ["auto", "fast", "quality", "override"]
+    assert data["configured_mode"] in ["auto", "fast", "quality", "override", "deterministic_only"]
 
 
 def test_status_accessible_by_reviewer(reviewer_token):

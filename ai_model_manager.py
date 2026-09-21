@@ -28,6 +28,7 @@ class ModelMode(str, Enum):
     QUALITY = "quality"
     AUTO = "auto"
     OVERRIDE = "override"
+    DETERMINISTIC_ONLY = "deterministic_only"
 
 class WorkloadType(str, Enum):
     UNMAPPED_LINE_MAPPING = "unmapped_line_mapping"
@@ -319,10 +320,11 @@ class AIModelManager:
 
         fallback_active = (not ollama_alive) or (effective_model == DETERMINISTIC_MODEL)
         fallback_reason = None
-        if not ollama_alive:
-            fallback_reason = "ollama_offline"
-        elif effective_model == DETERMINISTIC_MODEL:
+        if effective_model == DETERMINISTIC_MODEL:
+            # Explicit deterministic_only mode takes priority; also covers auto-routed low-RAM path
             fallback_reason = "deterministic_mode_selected"
+        elif not ollama_alive:
+            fallback_reason = "ollama_offline"
 
         hw_dict = {
             "total_ram_gb": hw.total_ram_gb,
@@ -359,6 +361,9 @@ class AIModelManager:
             mode = self.active_mode
         if mode == ModelMode.OVERRIDE and override_name is None:
             override_name = self.override_model
+
+        if mode == ModelMode.DETERMINISTIC_ONLY:
+            return DETERMINISTIC_MODEL
 
         if mode == ModelMode.FAST:
             return DEFAULT_FAST_MODEL
