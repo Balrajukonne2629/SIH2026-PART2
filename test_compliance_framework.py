@@ -386,6 +386,92 @@ class TestFrameworkRegistry:
         assert reg.exists("cis") is False
         assert reg.unregister("cis") is False
 
+    def test_list_for_vendor_cisco_and_normalization(self):
+        """Tests A, B, C: Cisco vendor matching, case-insensitivity, and platform string normalization."""
+        reg = FrameworkRegistry()
+        reg.register(Framework(framework_id="cis-cisco", name="CIS Cisco", version="1.0", vendor_scope="Cisco IOS-XE"))
+        reg.register(Framework(framework_id="stig-cisco", name="STIG Cisco", version="1.0", vendor_scope="Cisco IOS-XE"))
+        reg.register(Framework(framework_id="universal-fw", name="Universal", version="1.0", vendor_scope=None))
+
+        # A: vendor="cisco"
+        cisco_fws = reg.list_for_vendor("cisco")
+        assert [f.framework_id for f in cisco_fws] == ["cis-cisco", "stig-cisco", "universal-fw"]
+
+        # B: Case normalization
+        assert [f.framework_id for f in reg.list_for_vendor("CISCO")] == ["cis-cisco", "stig-cisco", "universal-fw"]
+        assert [f.framework_id for f in reg.list_for_vendor("Cisco")] == ["cis-cisco", "stig-cisco", "universal-fw"]
+
+        # C: Cisco IOS-XE platform string normalization
+        assert [f.framework_id for f in reg.list_for_vendor("Cisco IOS-XE")] == ["cis-cisco", "stig-cisco", "universal-fw"]
+        assert [f.framework_id for f in reg.list_for_vendor("cisco ios-xe")] == ["cis-cisco", "stig-cisco", "universal-fw"]
+        assert [f.framework_id for f in reg.list_for_vendor("CISCO IOS-XE")] == ["cis-cisco", "stig-cisco", "universal-fw"]
+
+    def test_list_for_vendor_juniper_isolation(self):
+        """Test D: Juniper must NOT return Cisco-only frameworks."""
+        reg = FrameworkRegistry()
+        reg.register(Framework(framework_id="cis-cisco", name="CIS Cisco", version="1.0", vendor_scope="Cisco IOS-XE"))
+        reg.register(Framework(framework_id="stig-cisco", name="STIG Cisco", version="1.0", vendor_scope="Cisco IOS-XE"))
+        reg.register(Framework(framework_id="universal-fw", name="Universal", version="1.0", vendor_scope=None))
+
+        juniper_fws = reg.list_for_vendor("juniper")
+        # Must only return vendor-neutral frameworks, no Cisco frameworks
+        assert [f.framework_id for f in juniper_fws] == ["universal-fw"]
+
+        # If no vendor-neutral frameworks exist:
+        reg2 = FrameworkRegistry()
+        reg2.register(Framework(framework_id="cis-cisco", name="CIS Cisco", version="1.0", vendor_scope="Cisco IOS-XE"))
+        assert reg2.list_for_vendor("juniper") == []
+
+    def test_list_for_vendor_unknown_vendor(self):
+        """Test E: Unknown vendor returns only vendor-neutral frameworks, or [] if none."""
+        reg = FrameworkRegistry()
+        reg.register(Framework(framework_id="cis-cisco", name="CIS Cisco", version="1.0", vendor_scope="Cisco IOS-XE"))
+        reg.register(Framework(framework_id="universal-fw", name="Universal", version="1.0", vendor_scope=None))
+
+        unknown_fws = reg.list_for_vendor("unknown_vendor_xyz")
+        assert [f.framework_id for f in unknown_fws] == ["universal-fw"]
+
+        # Without vendor-neutral
+        reg2 = FrameworkRegistry()
+        reg2.register(Framework(framework_id="cis-cisco", name="CIS Cisco", version="1.0", vendor_scope="Cisco IOS-XE"))
+        assert reg2.list_for_vendor("unknown_vendor_xyz") == []
+
+    def test_list_for_vendor_enabled_filtering(self):
+        """Tests F, G: Disabled frameworks excluded when enabled_only=True, included when enabled_only=False."""
+        reg = FrameworkRegistry()
+        reg.register(Framework(framework_id="active-cis", name="Active CIS", version="1.0", vendor_scope="Cisco IOS-XE", enabled=True))
+        reg.register(Framework(framework_id="disabled-stig", name="Disabled STIG", version="1.0", vendor_scope="Cisco IOS-XE", enabled=False))
+
+        # F: enabled_only=True excludes disabled
+        enabled_only = reg.list_for_vendor("cisco", enabled_only=True)
+        assert [f.framework_id for f in enabled_only] == ["active-cis"]
+
+        # G: enabled_only=False includes disabled if vendor-compatible
+        all_vendor = reg.list_for_vendor("cisco", enabled_only=False)
+        assert [f.framework_id for f in all_vendor] == ["active-cis", "disabled-stig"]
+
+    def test_list_for_vendor_deterministic_ordering(self):
+        """Test H: Repeated calls return identical framework order."""
+        reg = FrameworkRegistry()
+        reg.register(Framework(framework_id="zeta-fw", name="Zeta", version="1.0", vendor_scope="Cisco IOS-XE"))
+        reg.register(Framework(framework_id="alpha-fw", name="Alpha", version="1.0", vendor_scope="Cisco IOS-XE"))
+        reg.register(Framework(framework_id="beta-fw", name="Beta", version="1.0", vendor_scope="Cisco IOS-XE"))
+
+        first_call = [f.framework_id for f in reg.list_for_vendor("cisco")]
+        assert first_call == ["alpha-fw", "beta-fw", "zeta-fw"]
+
+        for _ in range(5):
+            assert [f.framework_id for f in reg.list_for_vendor("cisco")] == first_call
+
+    def test_list_for_vendor_empty_or_whitespace_vendor(self):
+        """Tests empty/whitespace vendor string handling."""
+        reg = FrameworkRegistry()
+        reg.register(Framework(framework_id="cisco-fw", name="Cisco", version="1.0", vendor_scope="Cisco IOS-XE"))
+        reg.register(Framework(framework_id="universal-fw", name="Universal", version="1.0", vendor_scope=None))
+
+        assert [f.framework_id for f in reg.list_for_vendor("")] == ["universal-fw"]
+        assert [f.framework_id for f in reg.list_for_vendor("   ")] == ["universal-fw"]
+
 
 # --- 8. Cisco MVP Adapter Parity & Backward Compatibility Tests ---
 

@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "test": "node --no-warnings --experimental-strip-types --test test_frontend_auth.mjs test_frontend_model_manager.mjs test_frontend_trusted_library.mjs"
+    "test": "node --no-warnings --experimental-strip-types --test test_frontend_auth.mjs test_frontend_model_manager.mjs test_frontend_trusted_library.mjs test_frontend_compliance_frameworks.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.344.0",

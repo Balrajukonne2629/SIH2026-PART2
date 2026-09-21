@@ -409,3 +409,30 @@ class TestComplianceAggregatorStaticSecurityInvariants:
             elif isinstance(node, ast.Call):
                 if isinstance(node.func, ast.Name) and node.func.id in ("eval", "exec"):
                     pytest.fail(f"Use of prohibited built-in '{node.func.id}' found at line {node.lineno}")
+
+    def test_no_vendor_specific_branching_in_aggregator(self):
+        """Verifies that compliance_aggregator.py contains zero vendor branching or imports."""
+        src_path = pathlib.Path(__file__).parent / "compliance_aggregator.py"
+        source_text = src_path.read_text(encoding="utf-8")
+        tree = ast.parse(source_text, filename="compliance_aggregator.py")
+
+        # 1. AST check: Zero vendor module imports
+        vendor_modules = {"cisco_auditor", "juniper_auditor", "vendor_adapter", "vendor_registry"}
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    root_pkg = alias.name.split(".")[0]
+                    assert root_pkg not in vendor_modules, f"Vendor module '{root_pkg}' imported in compliance_aggregator.py"
+            elif isinstance(node, ast.ImportFrom):
+                if node.module:
+                    root_pkg = node.module.split(".")[0]
+                    assert root_pkg not in vendor_modules, f"Vendor module '{root_pkg}' imported in compliance_aggregator.py"
+
+        # 2. Textual check: Zero vendor branching keywords
+        for line_no, line in enumerate(source_text.splitlines(), start=1):
+            line_clean = line.strip().lower()
+            if line_clean.startswith("#") or line_clean.startswith('"""') or line_clean.startswith('*'):
+                continue
+            assert 'vendor == "cisco"' not in line_clean, f"Vendor branching found at line {line_no}"
+            assert 'vendor == "juniper"' not in line_clean, f"Vendor branching found at line {line_no}"
+            assert 'vendor.lower()' not in line_clean, f"Vendor branching found at line {line_no}"

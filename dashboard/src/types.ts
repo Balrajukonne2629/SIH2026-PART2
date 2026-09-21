@@ -185,3 +185,74 @@ export interface SuggestionQueueItem {
   vendor?: string;
 }
 
+export interface FrameworkMetadataItem {
+  framework_id: string;
+  name: string;
+  version: string;
+  description: string;
+  vendor_scope: string;
+  control_namespace: string;
+  control_count: number;
+  severity_distribution: Record<string, number>;
+  enabled: boolean;
+}
+
+export interface FrameworksListResponse {
+  frameworks: FrameworkMetadataItem[];
+  total_count: number;
+}
+
+export interface FrameworkSummaryItem {
+  framework_id: string;
+  framework_name: string | null;
+  framework_version: string | null;
+  total_controls: number;
+  pass_count: number;
+  fail_count: number;
+  unknown_count: number;
+  pass_rate: number | null;
+  unknown_rate: number | null;
+  results: Array<{
+    control_id: string;
+    status: string;
+    observed_value: any;
+    expected_value: any;
+    location: string;
+    rationale: string;
+    framework_id: string;
+    confidence: number;
+    source_lines: string[];
+  }>;
+}
+
+export interface OverallMetricsItem {
+  total_frameworks: number;
+  total_controls: number;
+  total_pass: number;
+  total_fail: number;
+  total_unknown: number;
+  overall_pass_rate: number | null;
+  overall_unknown_rate: number | null;
+}
+
+export interface ConsolidatedEvidenceItem {
+  framework_id: string;
+  control_id: string;
+  status: string;
+  observed_value: any;
+  location: string;
+  expected_value: any;
+  rationale: string;
+  confidence: number;
+  source_lines: string[];
+}
+
+export interface MultiFrameworkAuditResult {
+  audit_id: string | null;
+  device_hostname: string | null;
+  framework_summaries: Record<string, FrameworkSummaryItem>;
+  overall_metrics: OverallMetricsItem;
+  consolidated_evidence: ConsolidatedEvidenceItem[];
+  timestamp: string | null;
+}
+

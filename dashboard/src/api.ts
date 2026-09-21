@@ -3,7 +3,7 @@
  * Endpoints at http://127.0.0.1:8000
  */
 
-import type { LoginResponse, UserIdentity, ModelStatus, ModelModeUpdateRequest, ModelModeUpdateResponse, TrustedMappingItem, SuggestionQueueItem } from './types';
+import type { LoginResponse, UserIdentity, ModelStatus, ModelModeUpdateRequest, ModelModeUpdateResponse, TrustedMappingItem, SuggestionQueueItem, FrameworksListResponse, MultiFrameworkAuditResult } from './types';
 
 // Use relative path '' so Vite dev proxy forwards /api -> http://127.0.0.1:8000
 export const API_BASE = '';
@@ -296,19 +296,11 @@ export async function setModelMode(payload: ModelModeUpdateRequest): Promise<Mod
 }
 
 // 13. GET /api/compliance/frameworks
-export async function getComplianceFrameworks() {
-  return request<{
-    frameworks: Array<{
-      framework_id: string;
-      display_name: string;
-      version: string;
-      authority: string;
-      control_count: number;
-      platform: string;
-      enabled: boolean;
-    }>;
-    total_count: number;
-  }>('/api/compliance/frameworks');
+export async function getComplianceFrameworks(vendor?: string): Promise<FrameworksListResponse> {
+  const params = new URLSearchParams();
+  if (vendor && vendor !== 'all') params.append('vendor', vendor);
+  const qs = params.toString() ? `?${params.toString()}` : '';
+  return request<FrameworksListResponse>(`/api/compliance/frameworks${qs}`);
 }
 
 // 14. POST /api/compliance/evaluate
@@ -316,29 +308,10 @@ export async function evaluateCompliance(payload: {
   session_id?: string;
   csm?: any;
   raw_config?: string;
+  vendor?: string;
   framework_ids?: string[];
-}) {
-  return request<{
-    audit_id: string | null;
-    device_hostname: string;
-    evaluation_timestamp: string;
-    overall_metrics: {
-      total_frameworks: number;
-      total_controls: number;
-      total_pass: number;
-      total_fail: number;
-      total_unknown: number;
-      compliance_percentage: number;
-      by_severity: {
-        CRITICAL: { total: number; pass: number; fail: number; unknown: number };
-        HIGH: { total: number; pass: number; fail: number; unknown: number };
-        MEDIUM: { total: number; pass: number; fail: number; unknown: number };
-        LOW: { total: number; pass: number; fail: number; unknown: number };
-      };
-    };
-    framework_summaries: Record<string, any>;
-    consolidated_evidence: any[];
-  }>('/api/compliance/evaluate', {
+}): Promise<MultiFrameworkAuditResult> {
+  return request<MultiFrameworkAuditResult>('/api/compliance/evaluate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),

@@ -25,6 +25,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Sequence, Union
 import datetime
+import re
 
 
 # --- 1. Compliance Status Contract ---
@@ -342,6 +343,57 @@ class FrameworkRegistry:
         if enabled_only:
             frameworks = [f for f in frameworks if f.enabled]
         return sorted(frameworks, key=lambda f: f.framework_id)
+
+    def list_for_vendor(
+        self,
+        vendor: str,
+        enabled_only: bool = True
+    ) -> List[Framework]:
+        """Lists registered frameworks applicable to the specified vendor or platform.
+
+        Matches vendor case-insensitively against each Framework's vendor_scope.
+        Vendor-neutral frameworks (vendor_scope=None) are always included.
+        For an unknown vendor, returns only vendor-neutral frameworks (or an empty list).
+        Disabled frameworks are excluded when enabled_only=True.
+
+        Args:
+            vendor: Vendor identifier or platform string (e.g. 'cisco', 'Cisco IOS-XE').
+            enabled_only: If True, filters out disabled frameworks. Defaults to True.
+
+        Returns:
+            List of matching Framework instances sorted deterministically by framework_id.
+        """
+        if not isinstance(vendor, str) or not vendor.strip():
+            all_fws = self.list(enabled_only=enabled_only)
+            return [f for f in all_fws if f.vendor_scope is None]
+
+        v_norm = vendor.strip().lower()
+        v_tokens = set(re.findall(r'[a-z0-9]+', v_norm))
+        v_alnum = re.sub(r'[^a-z0-9]', '', v_norm)
+
+        matched: List[Framework] = []
+        for fw in self.list(enabled_only=enabled_only):
+            if fw.vendor_scope is None:
+                matched.append(fw)
+                continue
+
+            s_norm = fw.vendor_scope.strip().lower()
+            s_tokens = set(re.findall(r'[a-z0-9]+', s_norm))
+            s_alnum = re.sub(r'[^a-z0-9]', '', s_norm)
+
+            if not v_tokens or not s_tokens:
+                continue
+
+            # Deterministic token & alphanumeric matching
+            if (
+                v_norm == s_norm
+                or v_alnum == s_alnum
+                or v_tokens.issubset(s_tokens)
+                or s_tokens.issubset(v_tokens)
+            ):
+                matched.append(fw)
+
+        return sorted(matched, key=lambda f: f.framework_id)
 
     def unregister(self, framework_id: str) -> bool:
         """Unregisters a framework and its evaluator. Returns True if found and removed."""

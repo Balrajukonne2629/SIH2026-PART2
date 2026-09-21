@@ -54,7 +54,7 @@ import sqlite3
 import uuid
 from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile, Depends
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile, Depends, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -994,13 +994,22 @@ async def verify_report(
 # --- 11. GET /api/compliance/frameworks ---
 @app.get("/api/compliance/frameworks", response_model=FrameworksListResponse)
 async def list_compliance_frameworks(
+    vendor: Optional[str] = Query(None, description="Optional vendor filter to list only compatible frameworks"),
     current_user: Dict[str, Any] = Depends(require_role("viewer", "uploader", "reviewer"))
 ):
-    """Returns list of registered deterministic compliance frameworks with metadata and control metrics."""
+    """Returns list of registered deterministic compliance frameworks with metadata and control metrics.
+    If vendor is specified, only frameworks matching the vendor are returned.
+    """
     registry = compliance_framework.get_default_registry()
     frameworks_meta = []
     
-    for f in registry.list(enabled_only=False):
+    frameworks_to_list = (
+        registry.list_for_vendor(vendor, enabled_only=False)
+        if vendor is not None and vendor.strip()
+        else registry.list(enabled_only=False)
+    )
+
+    for f in frameworks_to_list:
         evaluator = registry.get_evaluator(f.framework_id)
         control_count = 0
         severity_dist: Dict[str, int] = {}
@@ -1094,10 +1103,22 @@ async def evaluate_compliance(
     if not isinstance(csm, dict) or not csm:
         raise HTTPException(status_code=422, detail="CSM payload is empty or invalid.")
 
+    device_info = csm.get("device") if isinstance(csm.get("device"), dict) else {}
+    raw_vendor = req.vendor or device_info.get("vendor") or device_info.get("platform") or "unknown"
+    resolved_vendor = raw_vendor.strip().lower() if isinstance(raw_vendor, str) else "unknown"
+
     registry = compliance_framework.get_default_registry()
+    compatible_fws = registry.list_for_vendor(resolved_vendor, enabled_only=True)
+    compatible_fids = {f.framework_id for f in compatible_fws}
 
     # Determine frameworks to evaluate
-    if req.framework_ids:
+    if req.framework_ids is None:
+        target_fids = [
+            f.framework_id
+            for f in compatible_fws
+            if registry.get_evaluator(f.framework_id) is not None
+        ]
+    else:
         target_fids = []
         for fid in req.framework_ids:
             cleaned_fid = fid.strip().lower()
@@ -1106,13 +1127,23 @@ async def evaluate_compliance(
                     status_code=422,
                     detail=f"Framework '{fid}' is not registered."
                 )
+            fw = registry.get(cleaned_fid)
+            if fw is None or not fw.enabled:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Framework '{fid}' is disabled."
+                )
+            if cleaned_fid not in compatible_fids:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Framework '{fid}' is not compatible with vendor '{resolved_vendor}'."
+                )
+            if registry.get_evaluator(cleaned_fid) is None:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"No evaluator registered for framework '{fid}'."
+                )
             target_fids.append(cleaned_fid)
-    else:
-        target_fids = [
-            f.framework_id
-            for f in registry.list(enabled_only=True)
-            if registry.get_evaluator(f.framework_id) is not None
-        ]
 
     all_results = []
     for fid in target_fids:

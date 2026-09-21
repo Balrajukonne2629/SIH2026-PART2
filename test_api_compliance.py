@@ -430,7 +430,7 @@ class TestComplianceEvaluateDeterminismAndUnknowns:
     def test_evaluate_preserves_unknown_verdicts(self, viewer_token):
         # Empty device with no configured services
         bare_csm = {
-            "device": {"hostname": "EMPTY-DEVICE"},
+            "device": {"hostname": "EMPTY-DEVICE", "vendor": "cisco"},
             "management": {},
             "aaa": {},
             "logging": {},
@@ -493,3 +493,219 @@ class TestComplianceSecurityASTInvariants:
                         assert n.name not in forbidden, f"Forbidden import '{n.name}' in {mod_name}"
                 elif isinstance(node, ast.ImportFrom):
                     assert node.module not in forbidden, f"Forbidden from-import '{node.module}' in {mod_name}"
+
+
+# ==============================================================================
+# 7. Phase 3C: Vendor-Aware Framework Auto-Selection & Discovery (Chunk 4)
+# ==============================================================================
+
+class TestVendorAwareComplianceAPI:
+    """Verifies vendor-scoped framework auto-selection, cross-vendor rejection,
+    and vendor-filtered discovery.
+    """
+
+    SAMPLE_JUNIPER_CSM = {
+        "schema_version": "1.0",
+        "device": {
+            "hostname": "JUNIPER-CORE-01",
+            "vendor": "juniper",
+            "platform": "Junos",
+            "os_version": "21.4R1",
+        },
+        "interfaces": [],
+        "services": {"ssh": True, "ssh_version": 2, "telnet": False},
+        "management": {},
+        "aaa": {},
+        "logging": {},
+        "ntp": {},
+        "snmp": {},
+        "access_control": {},
+        "routing": {},
+    }
+
+    def test_auto_selection_cisco_evaluates_only_cisco_frameworks(self, viewer_token):
+        """When framework_ids is None, a Cisco CSM auto-evaluates only Cisco frameworks."""
+        res = client.post(
+            "/api/compliance/evaluate",
+            json={"csm": SAMPLE_COMPLIANT_CSM},
+            headers={"Authorization": f"Bearer {viewer_token}"},
+        )
+        assert res.status_code == 200
+        data = res.json()
+        assert "cis-cisco-iosxe" in data["framework_summaries"]
+        assert "disa-stig-cisco-iosxe" in data["framework_summaries"]
+        assert data["overall_metrics"]["total_frameworks"] == 2
+        assert data["overall_metrics"]["total_controls"] == 17
+
+    def test_auto_selection_juniper_does_not_evaluate_cisco_frameworks(self, viewer_token):
+        """When framework_ids is None, a Juniper CSM does not evaluate any Cisco frameworks."""
+        reg = compliance_framework.get_default_registry()
+        had_juniper = reg.exists("juniper-junos-baseline")
+        if had_juniper:
+            reg.unregister("juniper-junos-baseline")
+
+        try:
+            res = client.post(
+                "/api/compliance/evaluate",
+                json={"csm": self.SAMPLE_JUNIPER_CSM},
+                headers={"Authorization": f"Bearer {viewer_token}"},
+            )
+            assert res.status_code == 200
+            data = res.json()
+            assert "cis-cisco-iosxe" not in data["framework_summaries"]
+            assert "disa-stig-cisco-iosxe" not in data["framework_summaries"]
+            assert data["overall_metrics"]["total_frameworks"] == 0
+            assert data["overall_metrics"]["total_controls"] == 0
+        finally:
+            if had_juniper:
+                import juniper_auditor
+                juniper_auditor.register_juniper_baseline(reg)
+
+    def test_auto_selection_juniper_evaluates_juniper_framework_when_registered(self, viewer_token):
+        """When Juniper baseline is registered, Juniper CSM auto-selects only Juniper framework."""
+        import juniper_auditor
+        reg = compliance_framework.get_default_registry()
+        juniper_auditor.register_juniper_baseline(reg)
+
+        try:
+            res = client.post(
+                "/api/compliance/evaluate",
+                json={"csm": self.SAMPLE_JUNIPER_CSM},
+                headers={"Authorization": f"Bearer {viewer_token}"},
+            )
+            assert res.status_code == 200
+            data = res.json()
+            assert "juniper-junos-baseline" in data["framework_summaries"]
+            assert "cis-cisco-iosxe" not in data["framework_summaries"]
+            assert "disa-stig-cisco-iosxe" not in data["framework_summaries"]
+            assert data["overall_metrics"]["total_frameworks"] == 1
+            assert data["overall_metrics"]["total_controls"] == 10
+        finally:
+            reg.unregister("juniper-junos-baseline")
+
+    def test_explicit_cisco_framework_on_juniper_rejected_422(self, viewer_token):
+        """Client attempting to evaluate cis-cisco-iosxe on Juniper CSM is rejected with HTTP 422."""
+        res = client.post(
+            "/api/compliance/evaluate",
+            json={
+                "csm": self.SAMPLE_JUNIPER_CSM,
+                "framework_ids": ["cis-cisco-iosxe"],
+            },
+            headers={"Authorization": f"Bearer {viewer_token}"},
+        )
+        assert res.status_code == 422
+        assert "not compatible with vendor 'juniper'" in res.text
+
+    def test_explicit_disa_stig_framework_on_juniper_rejected_422(self, viewer_token):
+        """Client attempting to evaluate disa-stig-cisco-iosxe on Juniper CSM is rejected with HTTP 422."""
+        res = client.post(
+            "/api/compliance/evaluate",
+            json={
+                "csm": self.SAMPLE_JUNIPER_CSM,
+                "framework_ids": ["disa-stig-cisco-iosxe"],
+            },
+            headers={"Authorization": f"Bearer {viewer_token}"},
+        )
+        assert res.status_code == 422
+        assert "not compatible with vendor 'juniper'" in res.text
+
+    def test_explicit_disabled_framework_fails_422(self, viewer_token):
+        """Attempting to evaluate a registered but disabled framework fails with HTTP 422."""
+        reg = compliance_framework.get_default_registry()
+        disabled_fw = compliance_framework.Framework(
+            framework_id="disabled-framework-test",
+            name="Disabled Framework Test",
+            version="1.0",
+            vendor_scope="Cisco IOS-XE",
+            control_namespace="DISABLED",
+            enabled=False,
+        )
+        reg.register(disabled_fw, allow_replace=True)
+
+        try:
+            res = client.post(
+                "/api/compliance/evaluate",
+                json={
+                    "csm": SAMPLE_COMPLIANT_CSM,
+                    "framework_ids": ["disabled-framework-test"],
+                },
+                headers={"Authorization": f"Bearer {viewer_token}"},
+            )
+            assert res.status_code == 422
+            assert "is disabled" in res.text
+        finally:
+            reg.unregister("disabled-framework-test")
+
+    def test_framework_discovery_without_vendor_returns_all(self, viewer_token):
+        """GET /api/compliance/frameworks without vendor returns all registered frameworks."""
+        res = client.get(
+            "/api/compliance/frameworks",
+            headers={"Authorization": f"Bearer {viewer_token}"},
+        )
+        assert res.status_code == 200
+        data = res.json()
+        fids = [f["framework_id"] for f in data["frameworks"]]
+        assert "cis-cisco-iosxe" in fids
+        assert "disa-stig-cisco-iosxe" in fids
+        assert data["total_count"] >= 2
+
+    def test_framework_discovery_vendor_cisco(self, viewer_token):
+        """GET /api/compliance/frameworks?vendor=cisco returns only Cisco-scoped frameworks."""
+        res = client.get(
+            "/api/compliance/frameworks?vendor=cisco",
+            headers={"Authorization": f"Bearer {viewer_token}"},
+        )
+        assert res.status_code == 200
+        data = res.json()
+        assert data["total_count"] >= 2
+        for fw in data["frameworks"]:
+            assert "cisco" in fw["vendor_scope"].lower()
+
+    def test_framework_discovery_vendor_juniper(self, viewer_token):
+        """GET /api/compliance/frameworks?vendor=juniper returns only Juniper-scoped frameworks."""
+        reg = compliance_framework.get_default_registry()
+        import juniper_auditor
+        juniper_auditor.register_juniper_baseline(reg)
+
+        try:
+            res = client.get(
+                "/api/compliance/frameworks?vendor=juniper",
+                headers={"Authorization": f"Bearer {viewer_token}"},
+            )
+            assert res.status_code == 200
+            data = res.json()
+            assert data["total_count"] >= 1
+            for fw in data["frameworks"]:
+                assert "juniper" in fw["vendor_scope"].lower()
+                assert fw["framework_id"] != "cis-cisco-iosxe"
+                assert fw["framework_id"] != "disa-stig-cisco-iosxe"
+        finally:
+            reg.unregister("juniper-junos-baseline")
+
+    def test_framework_discovery_vendor_unknown_returns_empty(self, viewer_token):
+        """GET /api/compliance/frameworks?vendor=nonexistent returns empty list."""
+        res = client.get(
+            "/api/compliance/frameworks?vendor=nonexistent_vendor_xyz",
+            headers={"Authorization": f"Bearer {viewer_token}"},
+        )
+        assert res.status_code == 200
+        data = res.json()
+        assert data["total_count"] == 0
+        assert data["frameworks"] == []
+
+    def test_auto_selection_deterministic_repeatability(self, viewer_token):
+        """Repeated auto-selection evaluations produce identical metrics and evidence."""
+        headers = {"Authorization": f"Bearer {viewer_token}"}
+        payload = {"csm": SAMPLE_COMPLIANT_CSM}
+
+        res1 = client.post("/api/compliance/evaluate", json=payload, headers=headers)
+        res2 = client.post("/api/compliance/evaluate", json=payload, headers=headers)
+
+        assert res1.status_code == 200
+        assert res2.status_code == 200
+
+        data1 = res1.json()
+        data2 = res2.json()
+
+        assert data1["overall_metrics"] == data2["overall_metrics"]
+        assert len(data1["consolidated_evidence"]) == len(data2["consolidated_evidence"])
