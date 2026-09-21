@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Optional, Sequence
 import re
 
 import cisco_auditor
+import juniper_auditor
 
 
 class VendorAdapter(ABC):
@@ -199,3 +200,114 @@ class CiscoVendorAdapter(VendorAdapter):
             rules=rules,
             trusted_rules=trusted_rules or [],
         )
+
+
+class JuniperVendorAdapter(VendorAdapter):
+    """Juniper Networks vendor adapter wrapping verified juniper_auditor logic.
+
+    Implements:
+    - vendor_id = 'juniper'
+    - vendor_name = 'Juniper Networks'
+    - supported_platforms = ('Junos',)
+    - Canonical parsing and CSM normalization via juniper_auditor.parse_juniper
+    - Heuristic detection for hierarchical { ... } and flat set Junos configuration syntax
+    - Legacy baseline rule evaluation via juniper_auditor.evaluate_rules
+    """
+
+    # Strong Junos syntax indicators
+    _JUNOS_STRONG_PATTERNS = (
+        re.compile(r"^\s*set\s+(system|interfaces|protocols|snmp|firewall|routing-options|routing-instances)\b", re.MULTILINE),
+        re.compile(r"^\s*(system|interfaces|protocols|snmp|firewall|routing-options|routing-instances)\s*\{", re.MULTILINE),
+        re.compile(r"\bprotocol-version\s+v[12]\b"),
+        re.compile(r"\bauthentication-order\s*\["),
+        re.compile(r"\b(ge|xe|et|fxp|lo)\-\d+/\d+/\d+"),
+    )
+
+    # Medium Junos indicators
+    _JUNOS_MEDIUM_PATTERNS = (
+        re.compile(r"\bhost-name\s+\S+;"),
+        re.compile(r"\b(tacplus-server|radius-server)\b"),
+        re.compile(r"\b(protect-control-plane)\b"),
+        re.compile(r"\b(instance-type\s+virtual-router)\b"),
+        re.compile(r"/\*.*?\*/", re.DOTALL),
+        re.compile(r"^\s*##", re.MULTILINE),
+    )
+
+    # Disqualifying Cisco-specific patterns
+    _NON_JUNOS_PATTERNS = (
+        re.compile(r"^\s*!\s*$", re.MULTILINE),
+        re.compile(r"^\s*service\s+timestamps\b", re.MULTILINE),
+        re.compile(r"^\s*aaa\s+new-model\b", re.MULTILINE),
+        re.compile(r"^\s*line\s+vty\b", re.MULTILINE),
+        re.compile(r"^\s*ip\s+access-list\b", re.MULTILINE),
+        re.compile(r"^\s*interface\s+(GigabitEthernet|Loopback|TenGigabitEthernet)\b", re.MULTILINE),
+    )
+
+    @property
+    def vendor_id(self) -> str:
+        return "juniper"
+
+    @property
+    def vendor_name(self) -> str:
+        return "Juniper Networks"
+
+    @property
+    def supported_platforms(self) -> Sequence[str]:
+        return ("Junos",)
+
+    def parse(
+        self,
+        text: str,
+        filename: str = "juniper.conf",
+        trusted_rules: Optional[List[dict]] = None,
+    ) -> Dict[str, Any]:
+        """Parses raw Juniper Junos configuration into the Common Security Model (CSM)."""
+        return juniper_auditor.parse_juniper(
+            text=text,
+            filename=filename,
+            trusted_rules=trusted_rules or [],
+        )
+
+    def detect_confidence(self, text: str) -> float:
+        """Determines confidence that the text represents Juniper Junos configuration.
+
+        Scores based on presence of distinctive Junos syntax (hierarchical blocks,
+        'set ...' commands, Junos interface naming), and immediately returns 0.0
+        if Cisco IOS-XE syntax markers are detected.
+        """
+        if not text or not text.strip():
+            return 0.0
+
+        # Disqualify immediately if Cisco syntax is present
+        for pattern in self._NON_JUNOS_PATTERNS:
+            if pattern.search(text):
+                return 0.0
+
+        score = 0.0
+
+        # Check strong markers
+        strong_matches = sum(1 for p in self._JUNOS_STRONG_PATTERNS if p.search(text))
+        if strong_matches >= 2:
+            return 1.0
+        elif strong_matches >= 1:
+            score += 0.6
+
+        # Check medium markers
+        medium_matches = sum(1 for p in self._JUNOS_MEDIUM_PATTERNS if p.search(text))
+        score += 0.15 * medium_matches
+
+        return min(1.0, max(0.0, score))
+
+    def evaluate_legacy_rules(
+        self,
+        csm: Dict[str, Any],
+        rules: List[dict],
+        trusted_rules: Optional[List[dict]] = None,
+    ) -> Dict[str, Any]:
+        """Evaluates Juniper baseline rules via verified juniper_auditor."""
+        return juniper_auditor.evaluate_rules(
+            csm=csm,
+            rules=rules,
+            trusted_rules=trusted_rules or [],
+        )
+

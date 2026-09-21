@@ -12,6 +12,7 @@ def test_clean_files_pass_ast_safety():
     assert ast_safety.assert_no_execution_imports(base_dir / "main.py") is True
     assert ast_safety.assert_no_execution_imports(base_dir / "vendor_adapter.py") is True
     assert ast_safety.assert_no_execution_imports(base_dir / "vendor_registry.py") is True
+    assert ast_safety.assert_no_execution_imports(base_dir / "juniper_auditor.py") is True
 
 
 def test_forbidden_import_raises_runtime_error(tmp_path):
