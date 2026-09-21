@@ -122,26 +122,24 @@ def load_baseline_rules() -> List[dict]:
     return []
 
 
-def load_trusted_rules() -> List[dict]:
-    """Loads approved trusted custom rules from SQLite trusted_mappings table."""
-    conn = database.get_connection()
-    cur = conn.cursor()
-    cur.execute('SELECT * FROM trusted_mappings')
-    rows = cur.fetchall()
-    conn.close()
-    
+def load_trusted_rules(vendor: Optional[str] = None) -> List[dict]:
+    """Loads approved trusted custom rules from SQLite trusted_mappings table.
+    Enforces strict vendor isolation when vendor is specified."""
+    mappings = [m for m in database.list_trusted_mappings(vendor=vendor) if m.get("status") != "retired"]
     rules = []
-    for row in rows:
+    for m in mappings:
         rules.append({
-            "vendor_rule_id": row["vendor_rule_id"],
-            "common_rule_id": row["common_rule_id"],
-            "internalTitle": row["internalTitle"],
-            "csmFieldChecked": row["csmFieldChecked"],
-            "condition": row["condition"],
-            "configuration_evidence": json.loads(row["configuration_evidence"]),
-            "check_focus": json.loads(row["check_focus"]),
-            "frameworkMappings": json.loads(row["frameworkMappings"]),
-            "version_info": json.loads(row["version_info"])
+            "vendor_rule_id": m["vendor_rule_id"],
+            "common_rule_id": m["common_rule_id"],
+            "internalTitle": m["internalTitle"],
+            "csmFieldChecked": m["csmFieldChecked"],
+            "condition": m["condition"],
+            "configuration_evidence": m["configuration_evidence"],
+            "check_focus": m["check_focus"],
+            "frameworkMappings": m["frameworkMappings"],
+            "version_info": m["version_info"],
+            "vendor": m["vendor"],
+            "status": m["status"]
         })
     return rules
 
@@ -167,6 +165,7 @@ class LoginResponse(BaseModel):
 
 class SuggestRequest(BaseModel):
     unmapped_line: str
+    vendor: Optional[str] = "cisco"
 
 
 class ApproveRequest(BaseModel):
@@ -499,14 +498,26 @@ async def audit_upload(
         raise HTTPException(status_code=400, detail="Configuration content is empty.")
 
     try:
+        # Determine vendor adapter first to enforce vendor isolation on trusted mappings
+        target_registry = get_default_vendor_registry()
+        if vendor and vendor.strip() and vendor.strip().lower() != "auto":
+            resolved_adapter = target_registry.get(vendor)
+        else:
+            resolved_adapter = target_registry.detect(text)
+            if resolved_adapter is None:
+                raise UndeterminedVendorError(
+                    "Unable to determine vendor configuration type. Specify vendor explicitly or check configuration."
+                )
+
+        resolved_vendor = resolved_adapter.vendor_id
         baseline_rules = load_baseline_rules()
-        trusted_rules = load_trusted_rules()
+        trusted_rules = load_trusted_rules(vendor=resolved_vendor)
 
         # Step 1 & 2: Ingest configuration through vendor boundary and evaluate baseline rules
         csm, adapter = ingest_configuration(
             raw_text=text,
             filename=filename,
-            vendor=vendor,
+            vendor=resolved_vendor,
             trusted_rules=trusted_rules,
         )
         evals = adapter.evaluate_legacy_rules(csm, baseline_rules, trusted_rules=trusted_rules)
@@ -599,10 +610,11 @@ async def ai_suggest(
     if not line:
         raise HTTPException(status_code=400, detail="unmapped_line cannot be empty.")
 
+    vendor = (req.vendor or "cisco").lower().strip()
     try:
         rules_context = load_baseline_rules()
-        suggestion = ai_suggester.suggest_mapping(line, rules_context=rules_context)
-        suggestion_id = ai_suggester.store_suggestion(suggestion, filepath=PENDING_FILE)
+        suggestion = ai_suggester.suggest_mapping(line, rules_context=rules_context, vendor=vendor)
+        suggestion_id = ai_suggester.store_suggestion(suggestion, filepath=PENDING_FILE, vendor=vendor)
         return {
             "suggestion_id": suggestion_id,
             "suggestion": suggestion
@@ -617,7 +629,7 @@ async def ai_approve(
     req: ApproveRequest,
     current_user: Dict[str, Any] = Depends(require_role("reviewer", require_approver=True))
 ):
-    """Calls approve_suggestion(), updates trusted_mappings.json or rejects suggestion,
+    """Calls approve_suggestion(), updates trusted_mappings or rejects suggestion,
     and re-evaluates rules against active session if session_id provided.
     Authoritative reviewer identity is strictly derived from verified JWT claim current_user['sub'].
     Any client-supplied reviewer_name, reviewer_id, or headers are ignored for identity/accountability.
@@ -635,21 +647,24 @@ async def ai_approve(
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        err_msg = str(e)
+        if "Conflict:" in err_msg:
+            raise HTTPException(status_code=409, detail=err_msg)
+        raise HTTPException(status_code=400, detail=err_msg)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Approval workflow error: {e}")
 
-    # If session_id is provided, re-evaluate rules with the updated trusted mappings
+    # If session_id is provided, re-evaluate rules with the updated trusted mappings (strictly vendor-isolated)
     updated_evals = None
     updated_unmapped = None
     if req.session_id:
         session = database.get_session(req.session_id)
         if session:
+            session_vendor = session["csm"].get("device", {}).get("vendor", "cisco")
             baseline_rules = load_baseline_rules()
-            trusted_rules = load_trusted_rules()
+            trusted_rules = load_trusted_rules(vendor=session_vendor)
     
             # Re-parse and re-evaluate via registered vendor adapter
-            session_vendor = session["csm"].get("device", {}).get("vendor", "cisco")
             reg = get_default_vendor_registry()
             adapter = reg.get(session_vendor)
             csm_re = adapter.parse(
@@ -667,11 +682,84 @@ async def ai_approve(
             updated_unmapped = csm_re.get("unmapped_lines", [])
 
     return {
-        "status": res.get("status", req.decision),
+        "status": "rejected" if req.decision == "reject" else req.decision,
         "result": res,
         "updated_results": updated_evals,
         "unmapped_lines": updated_unmapped
     }
+
+
+# --- 4a. Trusted Rule Library Management Endpoints ---
+
+@app.get("/api/trusted-mappings")
+async def list_trusted_mappings_endpoint(
+    vendor: Optional[str] = None,
+    status: Optional[str] = None,
+    current_user: Dict[str, Any] = Depends(require_role("viewer", "uploader", "reviewer"))
+):
+    """Returns list of trusted deterministic rule mappings from the Trusted Rule Library.
+    Optionally filtered by vendor (cisco/juniper) and/or status (approved/corrected).
+    Available to all authenticated roles.
+    """
+    mappings = database.list_trusted_mappings(vendor=vendor, status=status)
+    return mappings
+
+
+@app.get("/api/trusted-mappings/{vendor_rule_id}")
+async def get_trusted_mapping_endpoint(
+    vendor_rule_id: str,
+    current_user: Dict[str, Any] = Depends(require_role("viewer", "uploader", "reviewer"))
+):
+    """Retrieves full specification and audit trail for a single trusted rule mapping."""
+    mapping = database.get_trusted_mapping(vendor_rule_id)
+    if not mapping:
+        raise HTTPException(status_code=404, detail=f"Trusted mapping '{vendor_rule_id}' not found.")
+    return mapping
+
+
+@app.delete("/api/trusted-mappings/{vendor_rule_id}")
+async def delete_trusted_mapping_endpoint(
+    vendor_rule_id: str,
+    current_user: Dict[str, Any] = Depends(require_role("reviewer", require_approver=True))
+):
+    """Deletes/retires a trusted rule mapping from the Trusted Rule Library.
+    Strictly restricted to authorized reviewer approvers.
+    """
+    deleted = database.delete_trusted_mapping(vendor_rule_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail=f"Trusted mapping '{vendor_rule_id}' not found.")
+    return {
+        "success": True,
+        "message": f"Trusted mapping '{vendor_rule_id}' successfully retired.",
+        "vendor_rule_id": vendor_rule_id,
+        "retired_by": current_user["sub"]
+    }
+
+
+@app.get("/api/ai/suggestions")
+async def list_suggestions_endpoint(
+    vendor: Optional[str] = None,
+    status: Optional[str] = None,
+    current_user: Dict[str, Any] = Depends(require_role("viewer", "uploader", "reviewer"))
+):
+    """Returns list of AI-generated suggestions awaiting or having completed human review.
+    Optionally filtered by vendor and/or status (pending/approved/rejected).
+    """
+    suggestions = database.list_pending_suggestions(vendor=vendor, status=status)
+    return suggestions
+
+
+@app.get("/api/ai/suggestions/{suggestion_id}")
+async def get_suggestion_endpoint(
+    suggestion_id: str,
+    current_user: Dict[str, Any] = Depends(require_role("viewer", "uploader", "reviewer"))
+):
+    """Retrieves full AI suggestion details by suggestion_id."""
+    suggestion = database.get_pending_suggestion(suggestion_id)
+    if not suggestion:
+        raise HTTPException(status_code=404, detail=f"Suggestion '{suggestion_id}' not found.")
+    return suggestion
+
 
 
 # --- 4b. AI Model Management Endpoints ---
@@ -976,10 +1064,20 @@ async def evaluate_compliance(
         if not req.raw_config.strip():
             raise HTTPException(status_code=422, detail="raw_config must not be empty.")
         try:
-            trusted_rules = load_trusted_rules()
+            target_registry = get_default_vendor_registry()
+            if req.vendor and req.vendor.strip() and req.vendor.strip().lower() != "auto":
+                resolved_adapter = target_registry.get(req.vendor)
+            else:
+                resolved_adapter = target_registry.detect(req.raw_config)
+                if resolved_adapter is None:
+                    raise UndeterminedVendorError(
+                        "Unable to determine vendor configuration type. Specify vendor explicitly or check configuration."
+                    )
+            resolved_vendor = resolved_adapter.vendor_id
+            trusted_rules = load_trusted_rules(vendor=resolved_vendor)
             csm, _ = ingest_configuration(
                 raw_text=req.raw_config,
-                vendor=req.vendor,
+                vendor=resolved_vendor,
                 trusted_rules=trusted_rules,
             )
             device_hostname = csm.get("device", {}).get("hostname", "unknown")

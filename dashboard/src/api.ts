@@ -3,7 +3,7 @@
  * Endpoints at http://127.0.0.1:8000
  */
 
-import type { LoginResponse, UserIdentity, ModelStatus, ModelModeUpdateRequest, ModelModeUpdateResponse } from './types';
+import type { LoginResponse, UserIdentity, ModelStatus, ModelModeUpdateRequest, ModelModeUpdateResponse, TrustedMappingItem, SuggestionQueueItem } from './types';
 
 // Use relative path '' so Vite dev proxy forwards /api -> http://127.0.0.1:8000
 export const API_BASE = '';
@@ -139,7 +139,7 @@ export async function getAuditResults(sessionId: string) {
 }
 
 // 3. POST /api/ai/suggest
-export async function suggestMapping(unmappedLine: string) {
+export async function suggestMapping(unmappedLine: string, vendor: string = 'cisco') {
   return request<{
     suggestion_id: string;
     suggestion: {
@@ -149,15 +149,17 @@ export async function suggestMapping(unmappedLine: string) {
         internalTitle: string;
         csmFieldChecked: string;
         condition: string;
+        vendor?: string;
       };
       confidence: number;
       rationale: string;
       framework_hints: Array<{ framework: string; possible_control_id: string }>;
+      vendor?: string;
     };
   }>('/api/ai/suggest', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ unmapped_line: unmappedLine }),
+    body: JSON.stringify({ unmapped_line: unmappedLine, vendor }),
   });
 }
 
@@ -175,6 +177,37 @@ export async function approveSuggestion(payload: {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(wirePayload),
   });
+}
+
+// 4a. Trusted Rule Library Endpoints
+export async function getTrustedMappings(vendor?: string, status?: string): Promise<TrustedMappingItem[]> {
+  const params = new URLSearchParams();
+  if (vendor && vendor !== 'all') params.append('vendor', vendor);
+  if (status && status !== 'all') params.append('status', status);
+  const qs = params.toString() ? `?${params.toString()}` : '';
+  return request<TrustedMappingItem[]>(`/api/trusted-mappings${qs}`);
+}
+
+export async function getTrustedMapping(vendorRuleId: string): Promise<TrustedMappingItem> {
+  return request<TrustedMappingItem>(`/api/trusted-mappings/${encodeURIComponent(vendorRuleId)}`);
+}
+
+export async function deleteTrustedMapping(vendorRuleId: string): Promise<{ success: boolean; message: string; vendor_rule_id: string; retired_by: string }> {
+  return request<{ success: boolean; message: string; vendor_rule_id: string; retired_by: string }>(`/api/trusted-mappings/${encodeURIComponent(vendorRuleId)}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function getPendingSuggestions(vendor?: string, status?: string): Promise<SuggestionQueueItem[]> {
+  const params = new URLSearchParams();
+  if (vendor && vendor !== 'all') params.append('vendor', vendor);
+  if (status && status !== 'all') params.append('status', status);
+  const qs = params.toString() ? `?${params.toString()}` : '';
+  return request<SuggestionQueueItem[]>(`/api/ai/suggestions${qs}`);
+}
+
+export async function getPendingSuggestion(suggestionId: string): Promise<SuggestionQueueItem> {
+  return request<SuggestionQueueItem>(`/api/ai/suggestions/${encodeURIComponent(suggestionId)}`);
 }
 
 // 5. POST /api/remediation/{rule_id}

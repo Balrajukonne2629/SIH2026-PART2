@@ -141,3 +141,47 @@ export interface ModelModeUpdateResponse extends ModelStatus {
   message: string;
 }
 
+export interface TrustedMappingItem {
+  vendor_rule_id: string;
+  common_rule_id?: string;
+  internalTitle: string;
+  csmFieldChecked: string;
+  condition: string;
+  configuration_evidence?: string[];
+  check_focus?: string[];
+  frameworkMappings?: Array<{ framework: string; possible_control_id?: string; controlId?: string }>;
+  version_info?: {
+    version?: string;
+    approved_by?: string;
+    approved_at?: string;
+    source?: 'ai_suggested' | 'human_corrected' | string;
+  };
+  vendor?: string;
+  status?: 'approved' | 'corrected' | 'rejected' | 'retired' | string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface SuggestionQueueItem {
+  suggestion_id: string;
+  timestamp: string;
+  status: 'pending' | 'approve' | 'approved' | 'approve_with_correction' | 'corrected' | 'rejected' | string;
+  suggestion: {
+    raw_line: string;
+    suggested_rule_id: string | null;
+    suggested_new_rule?: {
+      internalTitle: string;
+      csmFieldChecked: string;
+      condition: string;
+      vendor?: string;
+    };
+    confidence: number;
+    rationale: string;
+    framework_hints?: Array<{ framework: string; possible_control_id: string }>;
+    vendor?: string;
+  };
+  reviewed_by?: string | null;
+  reviewed_at?: string | null;
+  vendor?: string;
+}
+

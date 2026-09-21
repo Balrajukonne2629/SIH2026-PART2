@@ -51,6 +51,56 @@ def migrate_schema_add_ownership(conn: sqlite3.Connection):
         cur.execute("ALTER TABLE audit_ledger ADD COLUMN owner_user_id TEXT DEFAULT NULL")
     conn.commit()
 
+def migrate_schema_add_trusted_library_fields(conn: sqlite3.Connection):
+    """Idempotently and non-destructively adds vendor, status, created_at, updated_at to trusted_mappings
+    and vendor to pending_suggestions. Backfills existing rows with inferred vendor ('cisco'/'juniper')."""
+    cur = conn.cursor()
+    # trusted_mappings
+    cur.execute("PRAGMA table_info(trusted_mappings)")
+    tm_cols = [row[1] for row in cur.fetchall()]
+    if "vendor" not in tm_cols:
+        cur.execute("ALTER TABLE trusted_mappings ADD COLUMN vendor TEXT DEFAULT NULL")
+    if "status" not in tm_cols:
+        cur.execute("ALTER TABLE trusted_mappings ADD COLUMN status TEXT DEFAULT 'approved'")
+    if "created_at" not in tm_cols:
+        cur.execute("ALTER TABLE trusted_mappings ADD COLUMN created_at TEXT DEFAULT NULL")
+    if "updated_at" not in tm_cols:
+        cur.execute("ALTER TABLE trusted_mappings ADD COLUMN updated_at TEXT DEFAULT NULL")
+
+    # pending_suggestions
+    cur.execute("PRAGMA table_info(pending_suggestions)")
+    ps_cols = [row[1] for row in cur.fetchall()]
+    if "vendor" not in ps_cols:
+        cur.execute("ALTER TABLE pending_suggestions ADD COLUMN vendor TEXT DEFAULT NULL")
+
+    # Backfill vendor in trusted_mappings if NULL
+    cur.execute("SELECT vendor_rule_id, vendor FROM trusted_mappings WHERE vendor IS NULL")
+    for row in cur.fetchall():
+        vrid = row[0] or ""
+        inferred = "juniper" if (vrid.startswith("JUNOS-") or vrid.startswith("JUNIPER-")) else "cisco"
+        cur.execute("UPDATE trusted_mappings SET vendor = ? WHERE vendor_rule_id = ?", (inferred, vrid))
+
+    # Backfill vendor in pending_suggestions if NULL from suggestion JSON
+    cur.execute("SELECT suggestion_id, suggestion, vendor FROM pending_suggestions WHERE vendor IS NULL")
+    for row in cur.fetchall():
+        sid, raw_sug = row[0], row[1]
+        inferred = "cisco"
+        try:
+            if raw_sug:
+                sug_data = json.loads(raw_sug)
+                if "vendor" in sug_data and sug_data["vendor"]:
+                    inferred = sug_data["vendor"]
+                else:
+                    new_rule = sug_data.get("suggested_new_rule") or {}
+                    vrid = new_rule.get("vendor_rule_id") or ""
+                    if vrid.startswith("JUNOS-") or vrid.startswith("JUNIPER-"):
+                        inferred = "juniper"
+        except Exception:
+            pass
+        cur.execute("UPDATE pending_suggestions SET vendor = ? WHERE suggestion_id = ?", (inferred, sid))
+
+    conn.commit()
+
 def seed_default_users(conn: sqlite3.Connection):
     """Provisions default accounts when users table is empty with PBKDF2 hashes."""
     cur = conn.cursor()
@@ -167,6 +217,8 @@ def initialize_database():
 
         # Apply schema migrations for ownership
         migrate_schema_add_ownership(conn)
+        # Apply schema migrations for trusted library
+        migrate_schema_add_trusted_library_fields(conn)
         
         # Check legacy file migration
         cur.execute('SELECT COUNT(*) FROM audit_ledger')
@@ -215,22 +267,52 @@ def migrate_trusted_mappings(conn):
     try:
         entries = json.loads(TRUSTED_FILE.read_text(encoding="utf-8"))
         cur = conn.cursor()
+        cur.execute("PRAGMA table_info(trusted_mappings)")
+        cols = [row[1] for row in cur.fetchall()]
+        has_vendor = "vendor" in cols
         for entry in entries:
-            cur.execute('''
-                INSERT INTO trusted_mappings 
-                (vendor_rule_id, common_rule_id, internalTitle, csmFieldChecked, condition, configuration_evidence, check_focus, frameworkMappings, version_info)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ''', (
-                entry.get("vendor_rule_id"),
-                entry.get("common_rule_id"),
-                entry.get("internalTitle"),
-                entry.get("csmFieldChecked"),
-                entry.get("condition"),
-                json.dumps(entry.get("configuration_evidence", [])),
-                json.dumps(entry.get("check_focus", [])),
-                json.dumps(entry.get("frameworkMappings", [])),
-                json.dumps(entry.get("version_info", {}))
-            ))
+            vrid = entry.get("vendor_rule_id", "")
+            vendor = entry.get("vendor") or ("juniper" if (vrid.startswith("JUNOS-") or vrid.startswith("JUNIPER-")) else "cisco")
+            status = entry.get("status", "approved")
+            v_info = entry.get("version_info", {})
+            approved_at = v_info.get("approved_at") if isinstance(v_info, dict) else None
+
+            if has_vendor:
+                cur.execute('''
+                    INSERT OR REPLACE INTO trusted_mappings 
+                    (vendor_rule_id, common_rule_id, internalTitle, csmFieldChecked, condition, configuration_evidence, check_focus, frameworkMappings, version_info, vendor, status, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (
+                    vrid,
+                    entry.get("common_rule_id"),
+                    entry.get("internalTitle"),
+                    entry.get("csmFieldChecked"),
+                    entry.get("condition"),
+                    json.dumps(entry.get("configuration_evidence", [])),
+                    json.dumps(entry.get("check_focus", [])),
+                    json.dumps(entry.get("frameworkMappings", [])),
+                    json.dumps(v_info),
+                    vendor,
+                    status,
+                    approved_at,
+                    approved_at
+                ))
+            else:
+                cur.execute('''
+                    INSERT OR REPLACE INTO trusted_mappings 
+                    (vendor_rule_id, common_rule_id, internalTitle, csmFieldChecked, condition, configuration_evidence, check_focus, frameworkMappings, version_info)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ''', (
+                    vrid,
+                    entry.get("common_rule_id"),
+                    entry.get("internalTitle"),
+                    entry.get("csmFieldChecked"),
+                    entry.get("condition"),
+                    json.dumps(entry.get("configuration_evidence", [])),
+                    json.dumps(entry.get("check_focus", [])),
+                    json.dumps(entry.get("frameworkMappings", [])),
+                    json.dumps(v_info)
+                ))
     except Exception as e:
         print(f"Error migrating trusted mappings: {e}")
 
@@ -238,19 +320,43 @@ def migrate_pending_suggestions(conn):
     try:
         entries = json.loads(PENDING_FILE.read_text(encoding="utf-8"))
         cur = conn.cursor()
+        cur.execute("PRAGMA table_info(pending_suggestions)")
+        cols = [row[1] for row in cur.fetchall()]
+        has_vendor = "vendor" in cols
         for entry in entries:
-            cur.execute('''
-                INSERT INTO pending_suggestions 
-                (suggestion_id, timestamp, status, suggestion, reviewed_by, reviewed_at)
-                VALUES (?, ?, ?, ?, ?, ?)
-            ''', (
-                entry.get("suggestion_id"),
-                entry.get("timestamp"),
-                entry.get("status"),
-                json.dumps(entry.get("suggestion", {})),
-                entry.get("reviewed_by"),
-                entry.get("reviewed_at")
-            ))
+            sug = entry.get("suggestion", {})
+            vendor = entry.get("vendor") or (sug.get("vendor") if isinstance(sug, dict) else None)
+            if not vendor:
+                vrid = sug.get("suggested_new_rule", {}).get("vendor_rule_id", "") if isinstance(sug, dict) else ""
+                vendor = "juniper" if (vrid.startswith("JUNOS-") or vrid.startswith("JUNIPER-")) else "cisco"
+
+            if has_vendor:
+                cur.execute('''
+                    INSERT OR REPLACE INTO pending_suggestions 
+                    (suggestion_id, timestamp, status, suggestion, reviewed_by, reviewed_at, vendor)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                ''', (
+                    entry.get("suggestion_id"),
+                    entry.get("timestamp"),
+                    entry.get("status"),
+                    json.dumps(sug),
+                    entry.get("reviewed_by"),
+                    entry.get("reviewed_at"),
+                    vendor
+                ))
+            else:
+                cur.execute('''
+                    INSERT OR REPLACE INTO pending_suggestions 
+                    (suggestion_id, timestamp, status, suggestion, reviewed_by, reviewed_at)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                ''', (
+                    entry.get("suggestion_id"),
+                    entry.get("timestamp"),
+                    entry.get("status"),
+                    json.dumps(sug),
+                    entry.get("reviewed_by"),
+                    entry.get("reviewed_at")
+                ))
     except Exception as e:
         print(f"Error migrating pending suggestions: {e}")
 
@@ -385,3 +491,120 @@ def get_session(session_id):
             "owner_user_id": row["owner_user_id"] if "owner_user_id" in row_keys else None
         }
     return None
+
+def _row_to_trusted_mapping(row: sqlite3.Row) -> Dict[str, Any]:
+    row_keys = row.keys()
+    v_info = json.loads(row["version_info"]) if row["version_info"] else {}
+    vrid = row["vendor_rule_id"]
+    inferred_vendor = "juniper" if (vrid.startswith("JUNOS-") or vrid.startswith("JUNIPER-")) else "cisco"
+    return {
+        "vendor_rule_id": vrid,
+        "common_rule_id": row["common_rule_id"],
+        "internalTitle": row["internalTitle"],
+        "csmFieldChecked": row["csmFieldChecked"],
+        "condition": row["condition"],
+        "configuration_evidence": json.loads(row["configuration_evidence"]) if row["configuration_evidence"] else [],
+        "check_focus": json.loads(row["check_focus"]) if row["check_focus"] else [],
+        "frameworkMappings": json.loads(row["frameworkMappings"]) if row["frameworkMappings"] else [],
+        "version_info": v_info,
+        "vendor": row["vendor"] if ("vendor" in row_keys and row["vendor"]) else inferred_vendor,
+        "status": row["status"] if ("status" in row_keys and row["status"]) else "approved",
+        "created_at": row["created_at"] if ("created_at" in row_keys and row["created_at"]) else v_info.get("approved_at"),
+        "updated_at": row["updated_at"] if ("updated_at" in row_keys and row["updated_at"]) else v_info.get("approved_at"),
+    }
+
+def get_trusted_mapping(vendor_rule_id: str) -> Optional[Dict[str, Any]]:
+    """Retrieves a trusted mapping by vendor_rule_id."""
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT * FROM trusted_mappings WHERE vendor_rule_id = ?", (vendor_rule_id,))
+        row = cur.fetchone()
+        if row:
+            return _row_to_trusted_mapping(row)
+        return None
+    finally:
+        conn.close()
+
+def list_trusted_mappings(vendor: Optional[str] = None, status: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Lists trusted mappings, optionally filtered by vendor and/or status."""
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT * FROM trusted_mappings")
+        rows = cur.fetchall()
+        results = [_row_to_trusted_mapping(r) for r in rows]
+        if vendor:
+            v_clean = vendor.strip().lower()
+            results = [r for r in results if (r.get("vendor") or "").lower() == v_clean]
+        if status:
+            s_clean = status.strip().lower()
+            results = [r for r in results if (r.get("status") or "").lower() == s_clean]
+        return results
+    finally:
+        conn.close()
+
+def delete_trusted_mapping(vendor_rule_id: str) -> bool:
+    """Deletes/retires a trusted mapping by vendor_rule_id. Returns True if deleted, False if not found."""
+    with db_lock:
+        conn = get_connection()
+        cur = conn.cursor()
+        try:
+            cur.execute("SELECT 1 FROM trusted_mappings WHERE vendor_rule_id = ?", (vendor_rule_id,))
+            if not cur.fetchone():
+                return False
+            cur.execute("DELETE FROM trusted_mappings WHERE vendor_rule_id = ?", (vendor_rule_id,))
+            conn.commit()
+            return True
+        finally:
+            conn.close()
+
+def _row_to_pending_suggestion(row: sqlite3.Row) -> Dict[str, Any]:
+    row_keys = row.keys()
+    sug = json.loads(row["suggestion"]) if row["suggestion"] else {}
+    vrid = sug.get("suggested_new_rule", {}).get("vendor_rule_id", "") if isinstance(sug, dict) else ""
+    inferred_vendor = "juniper" if (vrid.startswith("JUNOS-") or vrid.startswith("JUNIPER-")) else "cisco"
+    row_vendor = row["vendor"] if "vendor" in row_keys else None
+    sug_vendor = sug.get("vendor") if isinstance(sug, dict) else None
+    final_vendor = row_vendor or sug_vendor or inferred_vendor
+    return {
+        "suggestion_id": row["suggestion_id"],
+        "timestamp": row["timestamp"],
+        "status": row["status"],
+        "suggestion": sug,
+        "reviewed_by": row["reviewed_by"],
+        "reviewed_at": row["reviewed_at"],
+        "vendor": final_vendor,
+    }
+
+def get_pending_suggestion(suggestion_id: str) -> Optional[Dict[str, Any]]:
+    """Retrieves a pending suggestion record by suggestion_id."""
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT * FROM pending_suggestions WHERE suggestion_id = ?", (suggestion_id,))
+        row = cur.fetchone()
+        if row:
+            return _row_to_pending_suggestion(row)
+        return None
+    finally:
+        conn.close()
+
+def list_pending_suggestions(vendor: Optional[str] = None, status: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Lists pending suggestions, optionally filtered by vendor and/or status."""
+    conn = get_connection()
+    cur = conn.cursor()
+    try:
+        cur.execute("SELECT * FROM pending_suggestions ORDER BY timestamp DESC")
+        rows = cur.fetchall()
+        results = [_row_to_pending_suggestion(r) for r in rows]
+        if vendor:
+            v_clean = vendor.strip().lower()
+            results = [r for r in results if (r.get("vendor") or "").lower() == v_clean]
+        if status:
+            s_clean = status.strip().lower()
+            results = [r for r in results if (r.get("status") or "").lower() == s_clean]
+        return results
+    finally:
+        conn.close()
+
