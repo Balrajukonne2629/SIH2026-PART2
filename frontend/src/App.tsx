@@ -222,7 +222,7 @@ export const App: React.FC = () => {
         )}
 
         {currentScreen === 'audit_log' && (
-          <AuditLogReportScreen />
+          <AuditLogReportScreen currentUser={currentUser} />
         )}
 
         {currentScreen === 'model_ops' && (

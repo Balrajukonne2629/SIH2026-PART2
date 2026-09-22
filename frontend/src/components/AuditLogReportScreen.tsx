@@ -1,14 +1,33 @@
 import React, { useState, useEffect } from 'react';
-import { getLedger, verifyLedger, verifyReport, getReportDownloadUrl } from '../api';
+import { getLedger, verifyLedger, verifyReport, exportCanonicalReportBlob } from '../api';
+import { ReportWorkflowPanel } from './ReportWorkflowPanel';
 import { formatToIST } from '../utils';
+import type { UserIdentity } from '../types';
 
-export const AuditLogReportScreen: React.FC = () => {
+interface Props {
+  currentUser: UserIdentity;
+}
+
+export const AuditLogReportScreen: React.FC<Props> = ({ currentUser }) => {
+  const canEdit = currentUser.role === 'reviewer' || currentUser.role === 'uploader';
+
   const [entries, setEntries] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [expandedEntries, setExpandedEntries] = useState<Record<string, boolean>>({});
-  
+
+  // Cache canonical report_id per entry_id
+  const [reportIdMap, setReportIdMap] = useState<Record<string, string | null>>({});
+  // Track format selection per entry ('pdf' | 'docx')
+  const [exportFormatMap, setExportFormatMap] = useState<Record<string, 'pdf' | 'docx'>>({});
+  // Track export in progress per entry
+  const [isExportingMap, setIsExportingMap] = useState<Record<string, boolean>>({});
+  // Track export error per entry
+  const [exportErrorMap, setExportErrorMap] = useState<Record<string, string | null>>({});
+  // Track whether edit mode is requested when expanded
+  const [editOpenMap, setEditOpenMap] = useState<Record<string, boolean>>({});
+
   // Chain Verification State
   const [isVerifyingChain, setIsVerifyingChain] = useState(false);
   const [chainResult, setChainResult] = useState<{
@@ -31,9 +50,16 @@ export const AuditLogReportScreen: React.FC = () => {
     try {
       const data = await getLedger();
       setEntries(data || []);
-      // auto-expand latest entry if present
       if (data && data.length > 0) {
-        setExpandedEntries({ [data[data.length - 1].entry_id]: true });
+        // Auto-expand latest entry if present
+        const latestId = data[data.length - 1].entry_id;
+        setExpandedEntries({ [latestId]: true });
+        // Synchronously cache canonical report_ids directly from ledger response (O(1), zero extra HTTP calls)
+        const initialReportMap: Record<string, string | null> = {};
+        for (const item of data) {
+          initialReportMap[item.entry_id] = item.report_id || null;
+        }
+        setReportIdMap(initialReportMap);
       }
     } catch (err: any) {
       setError(err.message);
@@ -43,10 +69,41 @@ export const AuditLogReportScreen: React.FC = () => {
   };
 
   const toggleExpand = (id: string) => {
-    setExpandedEntries((prev) => ({
-      ...prev,
-      [id]: !prev[id]
-    }));
+    setExpandedEntries((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const handleOpenEdit = (id: string) => {
+    setExpandedEntries((prev) => ({ ...prev, [id]: true }));
+    setEditOpenMap((prev) => ({ ...prev, [id]: true }));
+  };
+
+  // Authenticated canonical export using exportCanonicalReportBlob (PDF or DOCX)
+  const handleExport = async (entryId: string) => {
+    const format = exportFormatMap[entryId] || 'pdf';
+    setIsExportingMap((prev) => ({ ...prev, [entryId]: true }));
+    setExportErrorMap((prev) => ({ ...prev, [entryId]: null }));
+
+    try {
+      const rId = reportIdMap[entryId];
+      if (!rId) {
+        throw new Error(`Canonical report unavailable for legacy entry '${entryId}'.`);
+      }
+
+      const blob = await exportCanonicalReportBlob(rId, format);
+      const filename = `audit_report_${rId}.${format}`;
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err: any) {
+      setExportErrorMap((prev) => ({ ...prev, [entryId]: err.message }));
+    } finally {
+      setIsExportingMap((prev) => ({ ...prev, [entryId]: false }));
+    }
   };
 
   // Real backend check: GET /api/ledger/verify
@@ -81,18 +138,6 @@ export const AuditLogReportScreen: React.FC = () => {
     }
   };
 
-  // Trigger browser download via GET /api/report/{entry_id}/download
-  const handleDownloadPdf = (entryId: string) => {
-    const downloadUrl = getReportDownloadUrl(entryId);
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.download = `compliance_report_${entryId}.pdf`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   return (
     <div className="space-y-6 font-sans">
       {/* Header & Verification Controls */}
@@ -101,11 +146,11 @@ export const AuditLogReportScreen: React.FC = () => {
           <div>
             <div className="flex items-center space-x-3">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-sky-500"></span>
-              <h1 className="text-xl font-bold text-white uppercase tracking-wide">
-                Cryptographic Audit Ledger & Compliance Reports
+              <h1 className="text-xl font-bold text-white">
+                Cryptographic audit ledger &amp; compliance reports
               </h1>
-              <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
-                MODULE 5 — NON-REPUDIATION
+              <span className="text-[11px] font-mono text-slate-500">
+                Module 5 — Non-repudiation
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-1">
@@ -240,6 +285,8 @@ export const AuditLogReportScreen: React.FC = () => {
 
             const pdfVerification = pdfVerifyResults[entry.entry_id];
             const isVerifyingPdf = verifyingPdfMap[entry.entry_id];
+            const hasCanonical = Boolean(entry.has_canonical_report || entry.report_id || reportIdMap[entry.entry_id]);
+            const canonicalReportId = entry.report_id || reportIdMap[entry.entry_id];
 
             return (
               <div key={entry.entry_id} className="relative">
@@ -274,6 +321,15 @@ export const AuditLogReportScreen: React.FC = () => {
                               GENESIS BLOCK
                             </span>
                           )}
+                          {hasCanonical ? (
+                            <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-sky-950 text-sky-400 border border-sky-800">
+                              CANONICAL
+                            </span>
+                          ) : (
+                            <span className="px-1.5 py-0.2 rounded text-[10px] font-mono bg-slate-800 text-slate-400 border border-slate-700">
+                              LEGACY
+                            </span>
+                          )}
                         </div>
                         <div className="flex items-center gap-3 text-xs text-slate-400 mt-1 font-mono">
                           <span>DEVICE: <strong className="text-slate-200">{entry.device_hostname}</strong></span>
@@ -284,15 +340,15 @@ export const AuditLogReportScreen: React.FC = () => {
                     </div>
 
                     {/* Badges & Actions */}
-                    <div className="flex flex-wrap items-center gap-3">
-                      <div className="flex items-center space-x-1.5 font-mono text-xs">
-                        <span className="px-2 py-0.5 rounded bg-[#dcfce7] text-[#166534] font-bold border border-emerald-600">
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <div className="flex items-center space-x-1.5 font-mono text-xs mr-1">
+                        <span className="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 font-bold border border-emerald-700">
                           {passCount} PASS
                         </span>
-                        <span className="px-2 py-0.5 rounded bg-[#fee2e2] text-[#991b1b] font-bold border border-rose-600">
+                        <span className="px-2 py-0.5 rounded bg-rose-950 text-rose-300 font-bold border border-rose-700">
                           {failCount} FAIL
                         </span>
-                        <span className="px-2 py-0.5 rounded bg-[#fef9c3] text-[#854d0e] font-bold border border-amber-600">
+                        <span className="px-2 py-0.5 rounded bg-amber-950 text-amber-300 font-bold border border-amber-700">
                           {unknownCount} UNKNOWN
                         </span>
                       </div>
@@ -300,24 +356,91 @@ export const AuditLogReportScreen: React.FC = () => {
                       <button
                         onClick={() => handleVerifyPdf(entry.entry_id)}
                         disabled={isVerifyingPdf}
-                        className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-mono border border-slate-700 transition-colors cursor-pointer"
+                        className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-mono border border-slate-700 transition-colors cursor-pointer"
+                        title="Cryptographically verify PDF hash against ledger"
                       >
                         {isVerifyingPdf ? 'Verifying...' : 'Verify PDF'}
                       </button>
 
-                      <button
-                        onClick={() => handleDownloadPdf(entry.entry_id)}
-                        className="px-3 py-1.5 bg-sky-950/80 hover:bg-sky-900 text-sky-300 rounded text-xs font-mono font-semibold transition-colors border border-sky-800 flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                        </svg>
-                        Download PDF
-                      </button>
+                      {/* Format Selection + Authenticated Canonical Export OR Legacy Indicator */}
+                      {hasCanonical && canonicalReportId ? (
+                        <>
+                          <div className="flex items-center gap-1">
+                            <select
+                              value={exportFormatMap[entry.entry_id] || 'pdf'}
+                              onChange={(e) =>
+                                setExportFormatMap((prev) => ({
+                                  ...prev,
+                                  [entry.entry_id]: e.target.value as 'pdf' | 'docx',
+                                }))
+                              }
+                              className="text-xs font-mono bg-slate-800 border border-slate-700 text-slate-200 rounded px-2 py-1.5 cursor-pointer"
+                              aria-label="Export Format"
+                            >
+                              <option value="pdf">PDF</option>
+                              <option value="docx">DOCX</option>
+                            </select>
+
+                            <button
+                              onClick={() => handleExport(entry.entry_id)}
+                              disabled={isExportingMap[entry.entry_id]}
+                              className={`px-3 py-1.5 rounded text-xs font-mono font-semibold transition-colors border flex items-center gap-1.5 cursor-pointer ${
+                                isExportingMap[entry.entry_id]
+                                  ? 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'
+                                  : 'bg-sky-950/80 hover:bg-sky-900 text-sky-300 border-sky-800'
+                              }`}
+                              title={`Export canonical report as ${(exportFormatMap[entry.entry_id] || 'pdf').toUpperCase()}`}
+                            >
+                              {isExportingMap[entry.entry_id] ? (
+                                <>
+                                  <span className="inline-block w-3 h-3 border border-slate-400 border-t-transparent rounded-full animate-spin"></span>
+                                  <span>Exporting...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                  </svg>
+                                  <span>Export {(exportFormatMap[entry.entry_id] || 'pdf').toUpperCase()}</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+
+                          <button
+                            onClick={() => toggleExpand(entry.entry_id)}
+                            className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-xs font-mono transition-colors border border-slate-700 cursor-pointer"
+                            title="View canonical report details"
+                          >
+                            {isExpanded ? 'Hide Report' : 'View Report'}
+                          </button>
+
+                          {/* Edit Report button for Reviewer / Uploader */}
+                          {canEdit && (
+                            <button
+                              onClick={() => handleOpenEdit(entry.entry_id)}
+                              className="px-3 py-1.5 bg-amber-950/80 hover:bg-amber-900 text-amber-300 rounded text-xs font-mono font-semibold transition-colors border border-amber-800 flex items-center gap-1.5 cursor-pointer"
+                              title="Open canonical report editor"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                              <span>Edit Report</span>
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-mono text-slate-500 italic">
+                            Canonical report unavailable
+                          </span>
+                        </div>
+                      )}
 
                       <button
                         onClick={() => toggleExpand(entry.entry_id)}
                         className="p-1.5 text-slate-400 hover:text-white rounded bg-slate-800 border border-slate-700 cursor-pointer"
+                        title={isExpanded ? 'Collapse entry' : 'Expand entry'}
                       >
                         <svg
                           className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
@@ -330,6 +453,21 @@ export const AuditLogReportScreen: React.FC = () => {
                       </button>
                     </div>
                   </div>
+
+                  {/* Export Error Banner */}
+                  {exportErrorMap[entry.entry_id] && (
+                    <div className="px-4 pb-2">
+                      <div className="p-2.5 rounded border text-xs font-mono bg-rose-950/60 border-rose-700 text-rose-300 flex items-center justify-between">
+                        <span>Export failed: {exportErrorMap[entry.entry_id]}</span>
+                        <button
+                          onClick={() => setExportErrorMap((prev) => ({ ...prev, [entry.entry_id]: null }))}
+                          className="text-rose-400 hover:text-rose-200 ml-2"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Inline PDF Verification Banner */}
                   {pdfVerification && (
@@ -391,6 +529,25 @@ export const AuditLogReportScreen: React.FC = () => {
                           <code className="text-slate-200">{entry.remediation_summary?.rule_id || 'None'}</code>
                         </div>
                       </div>
+
+                      {/* Canonical Report Workflow or Legacy Notice */}
+                      {hasCanonical && canonicalReportId ? (
+                        <ReportWorkflowPanel
+                          reportId={canonicalReportId}
+                          currentUser={currentUser}
+                          initialEditMode={editOpenMap[entry.entry_id]}
+                        />
+                      ) : (
+                        <div className="mt-3 p-3 bg-slate-900/60 rounded border border-slate-800 text-slate-400 font-mono text-xs space-y-1">
+                          <div className="font-bold text-slate-300 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-slate-500 inline-block"></span>
+                            Historical Audit Record (Legacy)
+                          </div>
+                          <p className="text-slate-500 text-[11px]">
+                            This audit was recorded prior to canonical report generation. Canonical editable reports, version increments, and multi-format exports (PDF/DOCX) are available on newly finalized audits.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

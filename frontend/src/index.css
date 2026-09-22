@@ -1,15 +1,59 @@
+/* NTRO-Compliance-Auditor — Design System Tokens (MASTER.md) */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Color tokens — MASTER.md §Color Palette */
+    --color-primary:          #00FF41;
+    --color-on-primary:       #0F172A;
+    --color-secondary:        #0D0D0D;
+    --color-on-secondary:     #FFFFFF;
+    --color-accent:           #FF3333; /* CTA buttons ONLY — not for FAIL state */
+    --color-on-accent:        #000000;
+    --color-background:       #000000;
+    --color-foreground:       #E0E0E0;
+    --color-card:             #0C130E;
+    --color-card-foreground:  #E0E0E0;
+    --color-muted:            #181818;
+    --color-muted-foreground: #94A3B8;
+    --color-border:           #1F1F1F;
+    --color-destructive:      #EF4444; /* FAIL/error state — distinct from accent */
+    --color-on-destructive:   #000000;
+    --color-ring:             #00FF41;
+
+    /* Spacing tokens — MASTER.md §Spacing Variables */
+    --space-xs:  0.25rem;  /* 4px  */
+    --space-sm:  0.5rem;   /* 8px  */
+    --space-md:  1rem;     /* 16px */
+    --space-lg:  1.5rem;   /* 24px */
+    --space-xl:  2rem;     /* 32px */
+    --space-2xl: 3rem;     /* 48px */
+    --space-3xl: 4rem;     /* 64px */
+
+    /* Shadow tokens — MASTER.md §Shadow Depths */
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+    --shadow-xl: 0 20px 25px rgba(0,0,0,0.15);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     background-color: #0b0f19;
     color: #f8fafc;
-    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    /* MASTER.md: Body Font — Fira Sans (was Plus Jakarta Sans) */
+    font-family: 'Fira Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   }
 
+  /* MASTER.md: Heading Font — Fira Code for monospace/code contexts */
   code, pre, .font-mono {
-    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-family: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   }
 }

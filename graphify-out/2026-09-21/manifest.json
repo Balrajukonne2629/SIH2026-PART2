@@ -1,0 +1,1184 @@
+{
+  ".agents/skills/idea-refine/scripts/idea-refine.sh": {
+    "mtime": 1789652661.7510486,
+    "seen": 1789655074.8407328,
+    "ast_hash": "7d09d06b836527b5261a27027b1d8548",
+    "semantic_hash": ""
+  },
+  ".claude/skills/idea-refine/scripts/idea-refine.sh": {
+    "mtime": 1789652661.7510486,
+    "seen": 1789655074.840744,
+    "ast_hash": "7d09d06b836527b5261a27027b1d8548",
+    "semantic_hash": ""
+  },
+  "05_Configuration_Datasets/Cisco/labeled_test_config_answers.json": {
+    "mtime": 1789309380.027318,
+    "seen": 1789655074.840748,
+    "ast_hash": "d2d2d5f5ec320965f00eae1509ff1183",
+    "semantic_hash": ""
+  },
+  "07_Compliance_Scanners/Rule_Library/extracted/Rule_Library/cisco_ssh_rule.json": {
+    "mtime": 1789280336.0,
+    "seen": 1789655074.840751,
+    "ast_hash": "7537f0c653d148e639cf407d9c24e437",
+    "semantic_hash": ""
+  },
+  "07_Compliance_Scanners/Rule_Library/extracted/Rule_Library/common_rule_schema.json": {
+    "mtime": 1789280304.0,
+    "seen": 1789655074.8407543,
+    "ast_hash": "beb05fcc198963340cecfaf74c79a516",
+    "semantic_hash": ""
+  },
+  "07_Compliance_Scanners/Rule_Library/extracted/Rule_Library/compliance_check_result_schema.json": {
+    "mtime": 1789280578.0,
+    "seen": 1789655074.8407564,
+    "ast_hash": "937ceb9a85b69f824adb2b392115a6da",
+    "semantic_hash": ""
+  },
+  "07_Compliance_Scanners/Rule_Library/extracted/Rule_Library/example_ssh_rule.json": {
+    "mtime": 1789280320.0,
+    "seen": 1789655074.8407588,
+    "ast_hash": "8d887e82a5844e85baca4ef278ac4fc6",
+    "semantic_hash": ""
+  },
+  "07_Compliance_Scanners/Rule_Library/extracted/Rule_Library/juniper_ssh_rule.json": {
+    "mtime": 1789280352.0,
+    "seen": 1789655074.8407605,
+    "ast_hash": "2512f673bd4e8f445d421b2a39922655",
+    "semantic_hash": ""
+  },
+  "07_Compliance_Scanners/Rule_Library/extracted/Rule_Library/normalized_config_schema.json": {
+    "mtime": 1789309459.50051,
+    "seen": 1789655074.8407624,
+    "ast_hash": "9e99e9a4adb2b698a79d7b8c200aebe7",
+    "semantic_hash": ""
+  },
+  "07_Compliance_Scanners/Rule_Library/extracted/Rule_Library/sample_normalized_device.json": {
+    "mtime": 1789280542.0,
+    "seen": 1789655074.8407645,
+    "ast_hash": "d5a77e0a0420410f79ec46cbefbcec23",
+    "semantic_hash": ""
+  },
+  "07_Compliance_Scanners/Rule_Library/extracted/Rule_Library/starter_rules.json": {
+    "mtime": 1789280390.0,
+    "seen": 1789655074.8407664,
+    "ast_hash": "e4f4034ded50ca31c7ba11baffc70517",
+    "semantic_hash": ""
+  },
+  "07_Compliance_Scanners/Rule_Library/extracted/Rule_Library/vendor_rule_mapping.json": {
+    "mtime": 1789306654.973185,
+    "seen": 1789655074.8407686,
+    "ast_hash": "c2e9ef1473ecc79ebdb248522e1874a2",
+    "semantic_hash": ""
+  },
+  "10_Additional_References/NIST_SP-800-53_rev5_HIGH-baseline_profile.json": {
+    "mtime": 1789282190.0,
+    "seen": 1789655074.8407702,
+    "ast_hash": "87d4f4a153708b89ca58815b02710aed",
+    "semantic_hash": ""
+  },
+  "10_Additional_References/NIST_SP-800-53_rev5_LOW-baseline_profile.json": {
+    "mtime": 1789282190.0,
+    "seen": 1789655074.8407722,
+    "ast_hash": "bcdf0ba631f50629a58cc8e53616c1ef",
+    "semantic_hash": ""
+  },
+  "10_Additional_References/NIST_SP-800-53_rev5_MODERATE-baseline_profile.json": {
+    "mtime": 1789282190.0,
+    "seen": 1789655074.840775,
+    "ast_hash": "316fd15c98225650439c34b2b7e5136c",
+    "semantic_hash": ""
+  },
+  "ai_suggester.py": {
+    "mtime": 1790000058.1194818,
+    "seen": 1790000482.8717046,
+    "ast_hash": "1bffdecc4883906182462df0e1743443",
+    "semantic_hash": ""
+  },
+  "audit_log.py": {
+    "mtime": 1789902663.7447028,
+    "seen": 1789902965.311514,
+    "ast_hash": "e035f165433e06e337509f8026a21fc5",
+    "semantic_hash": ""
+  },
+  "auth.py": {
+    "mtime": 1789654861.5417604,
+    "seen": 1789655074.8408003,
+    "ast_hash": "3768485bc6779c878a72c8edf86b3b9c",
+    "semantic_hash": ""
+  },
+  "cisco_auditor.py": {
+    "mtime": 1789323404.601367,
+    "seen": 1789655074.840802,
+    "ast_hash": "4ca98178c185718a6760cea9e6c21b1e",
+    "semantic_hash": ""
+  },
+  "dashboard/package.json": {
+    "mtime": 1790009840.207241,
+    "seen": 1790010483.9058332,
+    "ast_hash": "518e1f587e7695402528a026c28e2800",
+    "semantic_hash": ""
+  },
+  "dashboard/postcss.config.js": {
+    "mtime": 1789328974.1175883,
+    "seen": 1789655074.8408053,
+    "ast_hash": "ef3ba2a81ba19f8ea5ddf625521e96f0",
+    "semantic_hash": ""
+  },
+  "dashboard/src/App.tsx": {
+    "mtime": 1789759002.5303917,
+    "seen": 1789759153.332256,
+    "ast_hash": "880104139994f1d7e0b5365270a9181f",
+    "semantic_hash": ""
+  },
+  "dashboard/src/api.ts": {
+    "mtime": 1790010934.9891276,
+    "seen": 1790013199.7481494,
+    "ast_hash": "48dd85c21edb3f5948398bf205a1c245",
+    "semantic_hash": ""
+  },
+  "dashboard/src/components/AiSuggestionReviewScreen.tsx": {
+    "mtime": 1789999617.7579422,
+    "seen": 1790000482.874288,
+    "ast_hash": "1d170eb4d883fbe2190a6481d9604d6c",
+    "semantic_hash": ""
+  },
+  "dashboard/src/components/AuditLogReportScreen.tsx": {
+    "mtime": 1789395693.8255088,
+    "seen": 1789655074.8408127,
+    "ast_hash": "ea50884bf8e7a8086ac6e7b47d7d68ff",
+    "semantic_hash": ""
+  },
+  "dashboard/src/components/AuditResultsScreen.tsx": {
+    "mtime": 1790010235.606846,
+    "seen": 1790010483.9070392,
+    "ast_hash": "938c864d9158b4a140b6371cb3557884",
+    "semantic_hash": ""
+  },
+  "dashboard/src/components/Navbar.tsx": {
+    "mtime": 1789758961.5823479,
+    "seen": 1789759153.332869,
+    "ast_hash": "448137eaa6f301c0679e91329b38f14e",
+    "semantic_hash": ""
+  },
+  "dashboard/src/components/RemediationDetailScreen.tsx": {
+    "mtime": 1789837324.4342785,
+    "seen": 1789837641.4245899,
+    "ast_hash": "bc86e154c56e355e681c2924e4ee6de2",
+    "semantic_hash": ""
+  },
+  "dashboard/src/components/UploadScreen.tsx": {
+    "mtime": 1789660969.4074705,
+    "seen": 1789661289.13918,
+    "ast_hash": "9b77b1df0c4f81e8950a4e3b4e7fc2de",
+    "semantic_hash": ""
+  },
+  "dashboard/src/main.tsx": {
+    "mtime": 1789329026.558154,
+    "seen": 1789655074.8408217,
+    "ast_hash": "616cc3a819dd55870952e6b1dfe19189",
+    "semantic_hash": ""
+  },
+  "dashboard/src/types.ts": {
+    "mtime": 1790002367.6257832,
+    "seen": 1790010483.9080093,
+    "ast_hash": "10d23c49088d7559945355c1eae71bed",
+    "semantic_hash": ""
+  },
+  "dashboard/src/utils.ts": {
+    "mtime": 1789395583.2566075,
+    "seen": 1789655074.8408256,
+    "ast_hash": "b62bd0449eddac35993a2e6b9e7c24e1",
+    "semantic_hash": ""
+  },
+  "dashboard/tailwind.config.js": {
+    "mtime": 1789328972.1194367,
+    "seen": 1789655074.8408287,
+    "ast_hash": "98ef4b21b400bc50d79e5b900e48c61e",
+    "semantic_hash": ""
+  },
+  "dashboard/tsconfig.json": {
+    "mtime": 1789328969.111686,
+    "seen": 1789655074.8408303,
+    "ast_hash": "b157674f181af36f89aebcc29da3e11c",
+    "semantic_hash": ""
+  },
+  "dashboard/vite.config.ts": {
+    "mtime": 1789328965.3514633,
+    "seen": 1789655074.840832,
+    "ast_hash": "ea33adeb78af1165831e7faba9d8d0cf",
+    "semantic_hash": ""
+  },
+  "database.py": {
+    "mtime": 1790013261.6554153,
+    "seen": 1790014274.2498207,
+    "ast_hash": "a4d47dc84ee218126b794fc0a4be0bc5",
+    "semantic_hash": ""
+  },
+  "main.py": {
+    "mtime": 1790013802.710385,
+    "seen": 1790014274.25012,
+    "ast_hash": "4c5895d59970cd9a6a59a88f94fd4741",
+    "semantic_hash": ""
+  },
+  "pending_suggestions.json": {
+    "mtime": 1789499100.017586,
+    "seen": 1789655074.8408408,
+    "ast_hash": "d650d3a17ca5552e321b1201cb1a4035",
+    "semantic_hash": ""
+  },
+  "remediation_engine.py": {
+    "mtime": 1789903312.1167996,
+    "seen": 1789903615.6496844,
+    "ast_hash": "623a9a394854f950a32661361359bff3",
+    "semantic_hash": ""
+  },
+  "report_generator.py": {
+    "mtime": 1789902672.216999,
+    "seen": 1789902965.3147013,
+    "ast_hash": "6f6297640678e4a5e161ba7f748f59a7",
+    "semantic_hash": ""
+  },
+  "skills-lock.json": {
+    "mtime": 1789652672.3910522,
+    "seen": 1789655074.8408463,
+    "ast_hash": "23d2c3485b5d3c6810f8eaa8b676531f",
+    "semantic_hash": ""
+  },
+  "test_api_full_loop.py": {
+    "mtime": 1789900225.7501688,
+    "seen": 1789900843.580085,
+    "ast_hash": "d6d3db62a5e661cf21433f5e940e7af2",
+    "semantic_hash": ""
+  },
+  "test_auth.py": {
+    "mtime": 1789654879.6400354,
+    "seen": 1789655074.8408499,
+    "ast_hash": "75f8379d264dcc4f8cd0f879f8c73741",
+    "semantic_hash": ""
+  },
+  "test_database.py": {
+    "mtime": 1789654176.0529704,
+    "seen": 1789655074.8408518,
+    "ast_hash": "a5c01b8bf1bbe2979bcae7a107d3cac5",
+    "semantic_hash": ""
+  },
+  "test_ollama_integration.py": {
+    "mtime": 1789900050.9350803,
+    "seen": 1789900843.5811381,
+    "ast_hash": "875e668d7500b953ae167d78b1e06c5d",
+    "semantic_hash": ""
+  },
+  "test_step5_full_loop.py": {
+    "mtime": 1789900110.1338115,
+    "seen": 1789900843.58114,
+    "ast_hash": "0e1b2978d550bb2e904bb1676c7ed5e6",
+    "semantic_hash": ""
+  },
+  "trusted_mappings.json": {
+    "mtime": 1789499100.019367,
+    "seen": 1789655074.8408568,
+    "ast_hash": "eb797ec695895cf0b6c05c3591c8dd5a",
+    "semantic_hash": ""
+  },
+  ".agents/rules/graphify.md": {
+    "mtime": 1789654020.6973197,
+    "seen": 1789655074.8408604,
+    "ast_hash": "a0e4d192b9e2e17256124dbfc8e24e6a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/api-and-interface-design/SKILL.md": {
+    "mtime": 1789652661.7419682,
+    "seen": 1789655074.8408623,
+    "ast_hash": "a890974341086aebb1972fd995b53945",
+    "semantic_hash": ""
+  },
+  ".agents/skills/browser-testing-with-devtools/SKILL.md": {
+    "mtime": 1789652661.7419682,
+    "seen": 1789655074.840864,
+    "ast_hash": "639b3e0f3bae1118b986269fb7bd5e87",
+    "semantic_hash": ""
+  },
+  ".agents/skills/ci-cd-and-automation/SKILL.md": {
+    "mtime": 1789652661.7430365,
+    "seen": 1789655074.8408659,
+    "ast_hash": "6a3b179662eb6f3b434bb3e95201d45f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/code-review-and-quality/SKILL.md": {
+    "mtime": 1789652661.7440321,
+    "seen": 1789655074.840868,
+    "ast_hash": "dc260b644bba88dc8a1bfcc3f01a839e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/code-simplification/SKILL.md": {
+    "mtime": 1789652661.7440321,
+    "seen": 1789655074.84087,
+    "ast_hash": "239dbb2a2f3caca0de086f7e0e0ebb03",
+    "semantic_hash": ""
+  },
+  ".agents/skills/constraint-driven-development/SKILL.md": {
+    "mtime": 1789652661.7450316,
+    "seen": 1789655074.8408716,
+    "ast_hash": "99c5a737188665e5fb5a96d7edee4f08",
+    "semantic_hash": ""
+  },
+  ".agents/skills/constraint-driven-development/references/floor-guard.md": {
+    "mtime": 1789652661.7450316,
+    "seen": 1789655074.8408732,
+    "ast_hash": "327d07d19f50aeec50dc748fe945a292",
+    "semantic_hash": ""
+  },
+  ".agents/skills/context-engineering/SKILL.md": {
+    "mtime": 1789652661.7460322,
+    "seen": 1789655074.8408747,
+    "ast_hash": "7c141b7d9d12c416aa57f0c29509256e",
+    "semantic_hash": ""
+  },
+  ".agents/skills/debugging-and-error-recovery/SKILL.md": {
+    "mtime": 1789652661.7470436,
+    "seen": 1789655074.8408766,
+    "ast_hash": "e906de3fe5071e70402b2705d3794a34",
+    "semantic_hash": ""
+  },
+  ".agents/skills/deprecation-and-migration/SKILL.md": {
+    "mtime": 1789652661.7470436,
+    "seen": 1789655074.8408782,
+    "ast_hash": "bd2d9a567b78d26c3c3044261e06f11d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/documentation-and-adrs/SKILL.md": {
+    "mtime": 1789652661.748037,
+    "seen": 1789655074.8408802,
+    "ast_hash": "9c74a0348a7f4a928f779e27dc52446d",
+    "semantic_hash": ""
+  },
+  ".agents/skills/doubt-driven-development/SKILL.md": {
+    "mtime": 1789652661.748037,
+    "seen": 1789655074.8408816,
+    "ast_hash": "f9ed4a58f060e10b4b28922ac93f857a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/frontend-ui-engineering/SKILL.md": {
+    "mtime": 1789652661.7490325,
+    "seen": 1789655074.8408837,
+    "ast_hash": "632c501a0962adc45d9bee6dfed6038a",
+    "semantic_hash": ""
+  },
+  ".agents/skills/git-workflow-and-versioning/SKILL.md": {
+    "mtime": 1789652661.7490325,
+    "seen": 1789655074.8408859,
+    "ast_hash": "6257ade8b2491231a0a2ec068aa8815f",
+    "semantic_hash": ""
+  },
+  ".agents/skills/idea-refine/SKILL.md": {
+    "mtime": 1789652661.7500365,
+    "seen": 1789655074.8408873,
+    "ast_hash": "7af2490cfd895ad7d419e6112985f4b3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/idea-refine/examples.md": {
+    "mtime": 1789652661.7500365,
+    "seen": 1789655074.840889,
+    "ast_hash": "8e3e911c980f371e695e786d5b22b495",
+    "semantic_hash": ""
+  },
+  ".agents/skills/idea-refine/frameworks.md": {
+    "mtime": 1789652661.7500365,
+    "seen": 1789655074.840891,
+    "ast_hash": "fa20786abdfa9de40c6886a8d7c958f2",
+    "semantic_hash": ""
+  },
+  ".agents/skills/idea-refine/refinement-criteria.md": {
+    "mtime": 1789652661.7510486,
+    "seen": 1789655074.8408926,
+    "ast_hash": "5ce82e7acc7b4b2b9dcd843fb9dcd1d6",
+    "semantic_hash": ""
+  },
+  ".agents/skills/incremental-implementation/SKILL.md": {
+    "mtime": 1789652661.7520342,
+    "seen": 1789655074.8408945,
+    "ast_hash": "4bf69e4ab81601c958335bc1e938f657",
+    "semantic_hash": ""
+  },
+  ".agents/skills/interview-me/SKILL.md": {
+    "mtime": 1789652661.7520342,
+    "seen": 1789655074.8408964,
+    "ast_hash": "9d57d4cd52197bad45adefee66226088",
+    "semantic_hash": ""
+  },
+  ".agents/skills/observability-and-instrumentation/SKILL.md": {
+    "mtime": 1789652661.753034,
+    "seen": 1789655074.8408978,
+    "ast_hash": "9fa7e1868c1522f36a8ca34485eb706b",
+    "semantic_hash": ""
+  },
+  ".agents/skills/performance-optimization/SKILL.md": {
+    "mtime": 1789652661.7540329,
+    "seen": 1789655074.8408995,
+    "ast_hash": "291e94a7b230759b2bc56a1751dd9616",
+    "semantic_hash": ""
+  },
+  ".agents/skills/planning-and-task-breakdown/SKILL.md": {
+    "mtime": 1789652661.7540329,
+    "seen": 1789655074.8409014,
+    "ast_hash": "9e8003b2dd231261f3078eb3fa3916da",
+    "semantic_hash": ""
+  },
+  ".agents/skills/security-and-hardening/SKILL.md": {
+    "mtime": 1789652661.7560322,
+    "seen": 1789655074.8409033,
+    "ast_hash": "d1dd8f68f722d15031493035bbf2d553",
+    "semantic_hash": ""
+  },
+  ".agents/skills/shipping-and-launch/SKILL.md": {
+    "mtime": 1789652661.757041,
+    "seen": 1789655074.8409069,
+    "ast_hash": "2a8a7b623b0263bd1728a37adf376887",
+    "semantic_hash": ""
+  },
+  ".agents/skills/source-driven-development/SKILL.md": {
+    "mtime": 1789652661.758039,
+    "seen": 1789655074.8409088,
+    "ast_hash": "721ea4941cbd0a28f6579d3ed1d0aaa3",
+    "semantic_hash": ""
+  },
+  ".agents/skills/spec-driven-development/SKILL.md": {
+    "mtime": 1789652661.758039,
+    "seen": 1789655074.8409107,
+    "ast_hash": "a7fd879e418650480cebcadc0ee513d8",
+    "semantic_hash": ""
+  },
+  ".agents/skills/test-driven-development/SKILL.md": {
+    "mtime": 1789652661.7590337,
+    "seen": 1789655074.8409123,
+    "ast_hash": "2763d4c81c31998fdf39f687860ca353",
+    "semantic_hash": ""
+  },
+  ".agents/skills/using-agent-skills/SKILL.md": {
+    "mtime": 1789652661.7590337,
+    "seen": 1789655074.8409142,
+    "ast_hash": "05fe5402ed96bf608ae4ab746772e926",
+    "semantic_hash": ""
+  },
+  ".agents/workflows/graphify.md": {
+    "mtime": 1789654020.6993184,
+    "seen": 1789655074.8409162,
+    "ast_hash": "a831cf3669f1e6ab85d8a80ebe655f99",
+    "semantic_hash": ""
+  },
+  ".claude/skills/api-and-interface-design/SKILL.md": {
+    "mtime": 1789652661.7419682,
+    "seen": 1789655074.8409178,
+    "ast_hash": "a890974341086aebb1972fd995b53945",
+    "semantic_hash": ""
+  },
+  ".claude/skills/browser-testing-with-devtools/SKILL.md": {
+    "mtime": 1789652661.7419682,
+    "seen": 1789655074.8409195,
+    "ast_hash": "639b3e0f3bae1118b986269fb7bd5e87",
+    "semantic_hash": ""
+  },
+  ".claude/skills/ci-cd-and-automation/SKILL.md": {
+    "mtime": 1789652661.7430365,
+    "seen": 1789655074.8409216,
+    "ast_hash": "6a3b179662eb6f3b434bb3e95201d45f",
+    "semantic_hash": ""
+  },
+  ".claude/skills/code-review-and-quality/SKILL.md": {
+    "mtime": 1789652661.7440321,
+    "seen": 1789655074.8409233,
+    "ast_hash": "dc260b644bba88dc8a1bfcc3f01a839e",
+    "semantic_hash": ""
+  },
+  ".claude/skills/code-simplification/SKILL.md": {
+    "mtime": 1789652661.7440321,
+    "seen": 1789655074.8409252,
+    "ast_hash": "239dbb2a2f3caca0de086f7e0e0ebb03",
+    "semantic_hash": ""
+  },
+  ".claude/skills/constraint-driven-development/SKILL.md": {
+    "mtime": 1789652661.7450316,
+    "seen": 1789655074.8409276,
+    "ast_hash": "99c5a737188665e5fb5a96d7edee4f08",
+    "semantic_hash": ""
+  },
+  ".claude/skills/constraint-driven-development/references/floor-guard.md": {
+    "mtime": 1789652661.7450316,
+    "seen": 1789655074.8409295,
+    "ast_hash": "327d07d19f50aeec50dc748fe945a292",
+    "semantic_hash": ""
+  },
+  ".claude/skills/context-engineering/SKILL.md": {
+    "mtime": 1789652661.7460322,
+    "seen": 1789655074.8409317,
+    "ast_hash": "7c141b7d9d12c416aa57f0c29509256e",
+    "semantic_hash": ""
+  },
+  ".claude/skills/debugging-and-error-recovery/SKILL.md": {
+    "mtime": 1789652661.7470436,
+    "seen": 1789655074.8409333,
+    "ast_hash": "e906de3fe5071e70402b2705d3794a34",
+    "semantic_hash": ""
+  },
+  ".claude/skills/deprecation-and-migration/SKILL.md": {
+    "mtime": 1789652661.7470436,
+    "seen": 1789655074.840935,
+    "ast_hash": "bd2d9a567b78d26c3c3044261e06f11d",
+    "semantic_hash": ""
+  },
+  ".claude/skills/documentation-and-adrs/SKILL.md": {
+    "mtime": 1789652661.748037,
+    "seen": 1789655074.840937,
+    "ast_hash": "9c74a0348a7f4a928f779e27dc52446d",
+    "semantic_hash": ""
+  },
+  ".claude/skills/doubt-driven-development/SKILL.md": {
+    "mtime": 1789652661.748037,
+    "seen": 1789655074.8409386,
+    "ast_hash": "f9ed4a58f060e10b4b28922ac93f857a",
+    "semantic_hash": ""
+  },
+  ".claude/skills/frontend-ui-engineering/SKILL.md": {
+    "mtime": 1789652661.7490325,
+    "seen": 1789655074.8409402,
+    "ast_hash": "632c501a0962adc45d9bee6dfed6038a",
+    "semantic_hash": ""
+  },
+  ".claude/skills/git-workflow-and-versioning/SKILL.md": {
+    "mtime": 1789652661.7490325,
+    "seen": 1789655074.8409421,
+    "ast_hash": "6257ade8b2491231a0a2ec068aa8815f",
+    "semantic_hash": ""
+  },
+  ".claude/skills/idea-refine/SKILL.md": {
+    "mtime": 1789652661.7500365,
+    "seen": 1789655074.8409443,
+    "ast_hash": "7af2490cfd895ad7d419e6112985f4b3",
+    "semantic_hash": ""
+  },
+  ".claude/skills/idea-refine/examples.md": {
+    "mtime": 1789652661.7500365,
+    "seen": 1789655074.8409462,
+    "ast_hash": "8e3e911c980f371e695e786d5b22b495",
+    "semantic_hash": ""
+  },
+  ".claude/skills/idea-refine/frameworks.md": {
+    "mtime": 1789652661.7500365,
+    "seen": 1789655074.840948,
+    "ast_hash": "fa20786abdfa9de40c6886a8d7c958f2",
+    "semantic_hash": ""
+  },
+  ".claude/skills/idea-refine/refinement-criteria.md": {
+    "mtime": 1789652661.7510486,
+    "seen": 1789655074.84095,
+    "ast_hash": "5ce82e7acc7b4b2b9dcd843fb9dcd1d6",
+    "semantic_hash": ""
+  },
+  ".claude/skills/incremental-implementation/SKILL.md": {
+    "mtime": 1789652661.7520342,
+    "seen": 1789655074.840952,
+    "ast_hash": "4bf69e4ab81601c958335bc1e938f657",
+    "semantic_hash": ""
+  },
+  ".claude/skills/interview-me/SKILL.md": {
+    "mtime": 1789652661.7520342,
+    "seen": 1789655074.8409536,
+    "ast_hash": "9d57d4cd52197bad45adefee66226088",
+    "semantic_hash": ""
+  },
+  ".claude/skills/observability-and-instrumentation/SKILL.md": {
+    "mtime": 1789652661.753034,
+    "seen": 1789655074.840955,
+    "ast_hash": "9fa7e1868c1522f36a8ca34485eb706b",
+    "semantic_hash": ""
+  },
+  ".claude/skills/performance-optimization/SKILL.md": {
+    "mtime": 1789652661.7540329,
+    "seen": 1789655074.840957,
+    "ast_hash": "291e94a7b230759b2bc56a1751dd9616",
+    "semantic_hash": ""
+  },
+  ".claude/skills/planning-and-task-breakdown/SKILL.md": {
+    "mtime": 1789652661.7540329,
+    "seen": 1789655074.840959,
+    "ast_hash": "9e8003b2dd231261f3078eb3fa3916da",
+    "semantic_hash": ""
+  },
+  ".claude/skills/security-and-hardening/SKILL.md": {
+    "mtime": 1789652661.7560322,
+    "seen": 1789655074.840961,
+    "ast_hash": "d1dd8f68f722d15031493035bbf2d553",
+    "semantic_hash": ""
+  },
+  ".claude/skills/shipping-and-launch/SKILL.md": {
+    "mtime": 1789652661.757041,
+    "seen": 1789655074.840963,
+    "ast_hash": "2a8a7b623b0263bd1728a37adf376887",
+    "semantic_hash": ""
+  },
+  ".claude/skills/source-driven-development/SKILL.md": {
+    "mtime": 1789652661.758039,
+    "seen": 1789655074.8409643,
+    "ast_hash": "721ea4941cbd0a28f6579d3ed1d0aaa3",
+    "semantic_hash": ""
+  },
+  ".claude/skills/spec-driven-development/SKILL.md": {
+    "mtime": 1789652661.758039,
+    "seen": 1789655074.8409662,
+    "ast_hash": "a7fd879e418650480cebcadc0ee513d8",
+    "semantic_hash": ""
+  },
+  ".claude/skills/test-driven-development/SKILL.md": {
+    "mtime": 1789652661.7590337,
+    "seen": 1789655074.8409677,
+    "ast_hash": "2763d4c81c31998fdf39f687860ca353",
+    "semantic_hash": ""
+  },
+  ".claude/skills/using-agent-skills/SKILL.md": {
+    "mtime": 1789652661.7590337,
+    "seen": 1789655074.8409698,
+    "ast_hash": "05fe5402ed96bf608ae4ab746772e926",
+    "semantic_hash": ""
+  },
+  "00_Project_Documentation/COLLECTION_STATUS.md": {
+    "mtime": 1789282190.0,
+    "seen": 1789655074.8409712,
+    "ast_hash": "530bab4b51b6134e13b017bb94d8feb3",
+    "semantic_hash": ""
+  },
+  "00_Project_Documentation/FILE_MANIFEST.txt": {
+    "mtime": 1789282190.0,
+    "seen": 1789655074.8409731,
+    "ast_hash": "fe8bf9f9da0581dc3e370e49c7afd0ae",
+    "semantic_hash": ""
+  },
+  "00_Project_Documentation/README.md": {
+    "mtime": 1789282190.0,
+    "seen": 1789655074.8409748,
+    "ast_hash": "fc73b647188affc69cea80b2f0c009c3",
+    "semantic_hash": ""
+  },
+  "00_Project_Documentation/RESOURCE_INVENTORY.md": {
+    "mtime": 1789282190.0,
+    "seen": 1789655074.8409765,
+    "ast_hash": "71c4f92d8461faf7843caa6bca8d5de9",
+    "semantic_hash": ""
+  },
+  "05_Configuration_Datasets/Cisco/labeled_test_config.txt": {
+    "mtime": 1789309377.4603236,
+    "seen": 1789655074.8409784,
+    "ast_hash": "546d16ac4a185130f56a1c61e7a6315a",
+    "semantic_hash": ""
+  },
+  "06_Framework_Mappings/CCI_List_Extracted/CCI List.html": {
+    "mtime": 1784013910.0,
+    "seen": 1789655074.8409803,
+    "ast_hash": "317fa25a6caa7a4d8f70a327ec6576d4",
+    "semantic_hash": ""
+  },
+  "06_Framework_Mappings/CCI_List_Extracted/README.TXT": {
+    "mtime": 1784014256.0,
+    "seen": 1789655074.840982,
+    "ast_hash": "3aab15e029921003a5a4a3520065be52",
+    "semantic_hash": ""
+  },
+  "10_Additional_References/NIST_SP-800-53_rev5_catalog.yaml": {
+    "mtime": 1789282190.0,
+    "seen": 1789655074.8409836,
+    "ast_hash": "5cc96a8518de34c19470b420a892147b",
+    "semantic_hash": ""
+  },
+  "ARCHITECTURE_NOTES.md": {
+    "mtime": 1789913223.2317476,
+    "seen": 1789913351.388472,
+    "ast_hash": "5f814e17739a42f757bba47c5182feb8",
+    "semantic_hash": ""
+  },
+  "NTRO_PS26155_PRD_v4_Addendum.md": {
+    "mtime": 1789148189.973616,
+    "seen": 1789655074.840987,
+    "ast_hash": "2ddb60f8cffc81849a88d50e256c47d0",
+    "semantic_hash": ""
+  },
+  "NTRO_PS26155_PRD_v5_Consolidated.md": {
+    "mtime": 1789555273.8045218,
+    "seen": 1789655074.8409886,
+    "ast_hash": "5f2ee6982de25bc6a9af593d6b850af9",
+    "semantic_hash": ""
+  },
+  "dashboard/index.html": {
+    "mtime": 1789329029.36769,
+    "seen": 1789655074.8410473,
+    "ast_hash": "e19a4101dc73cd177ce5d26bff107d46",
+    "semantic_hash": ""
+  },
+  "mapping_log.md": {
+    "mtime": 1789306677.5965664,
+    "seen": 1789655074.8411348,
+    "ast_hash": "2d7140c44dab3cbadc09e8926447fa54",
+    "semantic_hash": ""
+  },
+  "01_Compliance_Standards/CIS/CIS_Cisco_IOS_XE_17.x_Benchmark_v2.2.1.pdf": {
+    "mtime": 1789282190.0,
+    "seen": 1789655074.8411386,
+    "ast_hash": "a03ff9d6e4a3e4bd95fb0c4bb7cd624a",
+    "semantic_hash": ""
+  },
+  "01_Compliance_Standards/DISA_STIG/Router_STIG_Extracted/U_Cisco_IOS-XE_Router_Overview.pdf": {
+    "mtime": 1769494902.0,
+    "seen": 1789655074.8411405,
+    "ast_hash": "afe3cfc72977b4ca5aebc3e4d532026c",
+    "semantic_hash": ""
+  },
+  "01_Compliance_Standards/DISA_STIG/Router_STIG_Extracted/U_Cisco_IOS-XE_Router_Revision History.pdf": {
+    "mtime": 1769495310.0,
+    "seen": 1789655074.8411424,
+    "ast_hash": "eae9bda96d09792a3dfc28cf1728c689",
+    "semantic_hash": ""
+  },
+  "01_Compliance_Standards/DISA_STIG/Router_STIG_Extracted/U_Cisco_IOS_Router_STIG_V1_Release_Memo.pdf": {
+    "mtime": 1770259850.0,
+    "seen": 1789655074.8411443,
+    "ast_hash": "382f53e5cef222114b774633a5aa45b9",
+    "semantic_hash": ""
+  },
+  "01_Compliance_Standards/DISA_STIG/Router_STIG_Extracted/U_Readme_SRG_and_STIG.pdf": {
+    "mtime": 1721203920.0,
+    "seen": 1789655074.8411462,
+    "ast_hash": "80da0676c2b71e13ab871eb29dc5c1a9",
+    "semantic_hash": ""
+  },
+  "01_Compliance_Standards/DISA_STIG/Switch_STIG_Extracted/U_Cisco_IOS-XE_Switch_Overview.pdf": {
+    "mtime": 1769495880.0,
+    "seen": 1789655074.8411481,
+    "ast_hash": "976972717d09dd73bb2d1dd2937f42b6",
+    "semantic_hash": ""
+  },
+  "01_Compliance_Standards/DISA_STIG/Switch_STIG_Extracted/U_Cisco_IOS-XE_Switch_Revision_History.pdf": {
+    "mtime": 1773021388.0,
+    "seen": 1789655074.8411503,
+    "ast_hash": "ff3120d389fbf14baf528cc59996a5f5",
+    "semantic_hash": ""
+  },
+  "01_Compliance_Standards/DISA_STIG/Switch_STIG_Extracted/U_Cisco_Switch_STIG_V1_Release_Memo.pdf": {
+    "mtime": 1740622716.0,
+    "seen": 1789655074.841152,
+    "ast_hash": "89adcb789781a7810bf57b85c042dcc1",
+    "semantic_hash": ""
+  },
+  "01_Compliance_Standards/DISA_STIG/Switch_STIG_Extracted/U_Readme_SRG_and_STIG.pdf": {
+    "mtime": 1740622716.0,
+    "seen": 1789655074.8411536,
+    "ast_hash": "80da0676c2b71e13ab871eb29dc5c1a9",
+    "semantic_hash": ""
+  },
+  "01_Compliance_Standards/DISA_STIG/U_Cisco_IOS-XE_Switch_Overview.pdf": {
+    "mtime": 1789282190.0,
+    "seen": 1789655074.8411853,
+    "ast_hash": "976972717d09dd73bb2d1dd2937f42b6",
+    "semantic_hash": ""
+  },
+  "01_Compliance_Standards/DISA_STIG/U_Cisco_IOS-XE_Switch_Revision_History.pdf": {
+    "mtime": 1789282190.0,
+    "seen": 1789655074.841189,
+    "ast_hash": "ff3120d389fbf14baf528cc59996a5f5",
+    "semantic_hash": ""
+  },
+  "01_Compliance_Standards/DISA_STIG/U_Cisco_Switch_STIG_V1_Release_Memo.pdf": {
+    "mtime": 1789282190.0,
+    "seen": 1789655074.8411906,
+    "ast_hash": "89adcb789781a7810bf57b85c042dcc1",
+    "semantic_hash": ""
+  },
+  "01_Compliance_Standards/DISA_STIG/U_Readme_SRG_and_STIG.pdf": {
+    "mtime": 1789282190.0,
+    "seen": 1789655074.8411925,
+    "ast_hash": "80da0676c2b71e13ab871eb29dc5c1a9",
+    "semantic_hash": ""
+  },
+  "01_Compliance_Standards/NIST/NIST.SP.800-53r5.pdf": {
+    "mtime": 1789282190.0,
+    "seen": 1789655074.8411944,
+    "ast_hash": "bb4a2bba565b3200477ead5fe69fcb77",
+    "semantic_hash": ""
+  },
+  "10_Additional_References/EOS-User-Manual (1).pdf": {
+    "mtime": 1789282190.0,
+    "seen": 1789655074.8411963,
+    "ast_hash": "f478716e30c15fdea85cbdc85cd88bdf",
+    "semantic_hash": ""
+  },
+  "10_Additional_References/NIST_SP800-53_for_SIH26155_Team_Guide.pdf": {
+    "mtime": 1789282190.0,
+    "seen": 1789655074.8411984,
+    "ast_hash": "8eb584e2a2a62de6acf74b53ff0ef29e",
+    "semantic_hash": ""
+  },
+  "10_Additional_References/SIH26155_Project_Resources_and_Datasets_Guide.pdf": {
+    "mtime": 1789282190.0,
+    "seen": 1789655074.8412,
+    "ast_hash": "9da73b4aec70f538fb78b90761b7df5d",
+    "semantic_hash": ""
+  },
+  "MVP Technical Reference Library - Google Docs.pdf": {
+    "mtime": 1789149809.9322772,
+    "seen": 1789655074.841202,
+    "ast_hash": "1764a590f09920248acb71ec2cce7a57",
+    "semantic_hash": ""
+  },
+  "SIH2026-IDEA-Presentation-NEXTGEN(PART-2) .pdf": {
+    "mtime": 1789219571.947889,
+    "seen": 1789655074.8412044,
+    "ast_hash": "963d61728a7f4053b2ad8716011d9118",
+    "semantic_hash": ""
+  },
+  "SIH2026-IDEA-Presentation-NEXTGEN.pdf": {
+    "mtime": 1789226235.6743114,
+    "seen": 1789655074.8412063,
+    "ast_hash": "709359f33845d7b955a0d3674be0d46f",
+    "semantic_hash": ""
+  },
+  "01_Compliance_Standards/DISA_STIG/Router_STIG_Extracted/U_Cisco_IOS-XE_Router_NDM_V3R7_Manual_STIG/DoD-DISA-logos-as-JPEG.jpg": {
+    "mtime": 1721203920.0,
+    "seen": 1789655074.8412082,
+    "ast_hash": "54b5df617d6b5429ef491b646365b7a9",
+    "semantic_hash": ""
+  },
+  "01_Compliance_Standards/DISA_STIG/Router_STIG_Extracted/U_Cisco_IOS-XE_Router_RTR_V3R5_Manual_STIG/DoD-DISA-logos-as-JPEG.jpg": {
+    "mtime": 1721203920.0,
+    "seen": 1789655074.8412101,
+    "ast_hash": "54b5df617d6b5429ef491b646365b7a9",
+    "semantic_hash": ""
+  },
+  "01_Compliance_Standards/DISA_STIG/Switch_STIG_Extracted/U_Cisco_IOS-XE_Switch_L2S_V3R2_Manual_STIG/DoD-DISA-logos-as-JPEG.jpg": {
+    "mtime": 1740622716.0,
+    "seen": 1789655074.8412125,
+    "ast_hash": "54b5df617d6b5429ef491b646365b7a9",
+    "semantic_hash": ""
+  },
+  "01_Compliance_Standards/DISA_STIG/Switch_STIG_Extracted/U_Cisco_IOS-XE_Switch_NDM_V3R6_Manual_STIG/DoD-DISA-logos-as-JPEG.jpg": {
+    "mtime": 1740622716.0,
+    "seen": 1789655074.8412142,
+    "ast_hash": "54b5df617d6b5429ef491b646365b7a9",
+    "semantic_hash": ""
+  },
+  "01_Compliance_Standards/DISA_STIG/Switch_STIG_Extracted/U_Cisco_IOS-XE_Switch_RTR_V3R4_Manual_STIG/DoD-DISA-logos-as-JPEG.jpg": {
+    "mtime": 1740622716.0,
+    "seen": 1789655074.841216,
+    "ast_hash": "54b5df617d6b5429ef491b646365b7a9",
+    "semantic_hash": ""
+  },
+  "test_api_auth.py": {
+    "mtime": 1789655380.0530877,
+    "seen": 1789655764.4595034,
+    "ast_hash": "490e638c6958247e22897ca604cfbe43",
+    "semantic_hash": ""
+  },
+  "test_api_rbac.py": {
+    "mtime": 1789656235.5886621,
+    "seen": 1789656961.1248317,
+    "ast_hash": "135171d69dded5d74b059a365627efd5",
+    "semantic_hash": ""
+  },
+  "test_api_ownership.py": {
+    "mtime": 1789904713.8321478,
+    "seen": 1789905168.9950802,
+    "ast_hash": "0383c6abcf20754c0f9b2e7c3aa341e3",
+    "semantic_hash": ""
+  },
+  "test_api_reviewer_identity.py": {
+    "mtime": 1789660188.1359541,
+    "seen": 1789660511.6357756,
+    "ast_hash": "df15b558e215d08e2f376de47be8808f",
+    "semantic_hash": ""
+  },
+  "dashboard/src/components/LoginScreen.tsx": {
+    "mtime": 1789759512.3616798,
+    "seen": 1789837641.424231,
+    "ast_hash": "30712e8eb365a82bec1bb011b8323cf3",
+    "semantic_hash": ""
+  },
+  "dashboard/test_frontend_auth.mjs": {
+    "mtime": 1789661117.9410064,
+    "seen": 1789661289.1396413,
+    "ast_hash": "ac0fbc7f296117d3bef68f41b61f7ab7",
+    "semantic_hash": ""
+  },
+  "test_docker_offline_auth.py": {
+    "mtime": 1789901121.1246302,
+    "seen": 1789901541.8201375,
+    "ast_hash": "62518d3c6fb1f9e48443e5986c4cfa00",
+    "semantic_hash": ""
+  },
+  "docker-compose.yml": {
+    "mtime": 1789902710.2814457,
+    "seen": 1789902965.3288167,
+    "ast_hash": "635b3ea3ea13afb8f7a71feb7e8445cd",
+    "semantic_hash": ""
+  },
+  "requirements.txt": {
+    "mtime": 1789665892.3684394,
+    "seen": 1789665953.022441,
+    "ast_hash": "64ec20d1e48963780de42c5c719e0097",
+    "semantic_hash": ""
+  },
+  "ai_model_manager.py": {
+    "mtime": 1789996079.141304,
+    "seen": 1790000482.8717005,
+    "ast_hash": "35f93554abd6ffb6d2b8425d380aa291",
+    "semantic_hash": ""
+  },
+  "test_ai_model_manager.py": {
+    "mtime": 1789755400.6397119,
+    "seen": 1789757632.354051,
+    "ast_hash": "14fd30c51d3a7348ab41d188bbc908ee",
+    "semantic_hash": ""
+  },
+  "test_api_model_manager.py": {
+    "mtime": 1789995922.769264,
+    "seen": 1790000482.8784983,
+    "ast_hash": "87353f71bebcb5088a8ec1e495b293b1",
+    "semantic_hash": ""
+  },
+  "AI_HARDWARE_MODEL_BENCHMARK_AUDIT.md": {
+    "mtime": 1789754558.5366142,
+    "seen": 1789757632.3845847,
+    "ast_hash": "65819d13875e48adfa77c791bf78d70e",
+    "semantic_hash": ""
+  },
+  "AI_MODEL_MANAGER_CHUNK1_IMPLEMENTATION_REPORT.md": {
+    "mtime": 1789755761.446728,
+    "seen": 1789757632.3845887,
+    "ast_hash": "95a9285bd61f315321af2a53f69d3ab3",
+    "semantic_hash": ""
+  },
+  "AI_MODEL_MANAGER_CHUNK2A_API_REPORT.md": {
+    "mtime": 1789758587.2814047,
+    "seen": 1789759153.3492491,
+    "ast_hash": "288de0b5d3da8a179ed8b8cdbbf91529",
+    "semantic_hash": ""
+  },
+  "AI_MODEL_MANAGER_CONFIG_PRECEDENCE_AUDIT.md": {
+    "mtime": 1789758149.5007474,
+    "seen": 1789758575.9541447,
+    "ast_hash": "b5bccc1818031ac98809a8d457f952d8",
+    "semantic_hash": ""
+  },
+  "dashboard/src/components/AiModelManagerScreen.tsx": {
+    "mtime": 1789837388.4130545,
+    "seen": 1789837641.423496,
+    "ast_hash": "0964d9dc5d91882b553052dab4c2ed67",
+    "semantic_hash": ""
+  },
+  "dashboard/test_frontend_model_manager.mjs": {
+    "mtime": 1789759033.4805043,
+    "seen": 1789759153.3338294,
+    "ast_hash": "d1fe0cbdb291961848f1d75266bc3fc4",
+    "semantic_hash": ""
+  },
+  "AI_MODEL_MANAGER_CONFIG_PRECEDENCE_FIX_REPORT.md": {
+    "mtime": 1789758595.7355943,
+    "seen": 1789759153.3493936,
+    "ast_hash": "288de0b5d3da8a179ed8b8cdbbf91529",
+    "semantic_hash": ""
+  },
+  "AI_RUNTIME_TRUTH_AND_TELEMETRY_AUDIT.md": {
+    "mtime": 1789838105.9697478,
+    "seen": 1789838163.2233796,
+    "ast_hash": "9018a030da5de948c7ee8c8bb8894aea",
+    "semantic_hash": ""
+  },
+  "compliance_framework.py": {
+    "mtime": 1790001538.8639393,
+    "seen": 1790010483.9058292,
+    "ast_hash": "4a92b0f9b55c393c3c2f5d94c4e8b599",
+    "semantic_hash": ""
+  },
+  "test_compliance_framework.py": {
+    "mtime": 1790001514.0847044,
+    "seen": 1790010483.9123662,
+    "ast_hash": "5841036056c2ea87623d5c9dc8bdbb86",
+    "semantic_hash": ""
+  },
+  "MULTI_FRAMEWORK_COMPLIANCE_ARCHITECTURE.md": {
+    "mtime": 1789841446.0628836,
+    "seen": 1789841469.3172276,
+    "ast_hash": "55833a78d4e022b212ed72e6d902f8ae",
+    "semantic_hash": ""
+  },
+  "cis_benchmark_cisco_iosxe.py": {
+    "mtime": 1789839558.1148226,
+    "seen": 1789839806.4183679,
+    "ast_hash": "58af74ccaef54d1d9104a2c485fb0480",
+    "semantic_hash": ""
+  },
+  "test_cis_benchmark.py": {
+    "mtime": 1789839581.606239,
+    "seen": 1789839806.4330647,
+    "ast_hash": "acbdc16c3d3ecf2eeb2d4d442bb66385",
+    "semantic_hash": ""
+  },
+  "disa_stig_cisco_iosxe.py": {
+    "mtime": 1789839983.1907868,
+    "seen": 1789840204.9558163,
+    "ast_hash": "f63ccfeac715f6552d7d43a5237b4a37",
+    "semantic_hash": ""
+  },
+  "test_disa_stig.py": {
+    "mtime": 1789840021.5346818,
+    "seen": 1789840204.9594693,
+    "ast_hash": "040ddf7ce117822c32dacbd689650054",
+    "semantic_hash": ""
+  },
+  "compliance_aggregator.py": {
+    "mtime": 1789840365.53721,
+    "seen": 1789840569.5548553,
+    "ast_hash": "d1a586e67014de2b115002b8f41c7b2c",
+    "semantic_hash": ""
+  },
+  "test_multi_framework_aggregation.py": {
+    "mtime": 1790010950.7339408,
+    "seen": 1790013199.777624,
+    "ast_hash": "dabf06dc0f80ed485481aea1bdecad82",
+    "semantic_hash": ""
+  },
+  "test_api_compliance.py": {
+    "mtime": 1790010942.982195,
+    "seen": 1790013199.762642,
+    "ast_hash": "b754da5dbc87a0e25cb35b1312830694",
+    "semantic_hash": ""
+  },
+  "3A5_REST_API_IMPLEMENTATION_REPORT.md": {
+    "mtime": 1789841456.5138922,
+    "seen": 1789841469.316158,
+    "ast_hash": "11fef3d0091c4bfa44064098da46ee10",
+    "semantic_hash": ""
+  },
+  "CODEBASE_REALITY_AUDIT.md": {
+    "mtime": 1789843937.5671773,
+    "seen": 1789900843.590192,
+    "ast_hash": "441ab1c0165a628a11ecb8eed840e246",
+    "semantic_hash": ""
+  },
+  "3R1_SAFE_CLEANUP_BATCH_A_REPORT.md": {
+    "mtime": 1789901560.0206895,
+    "seen": 1789902965.3276517,
+    "ast_hash": "1675f22ccaebf0c91ab04421d4675b9b",
+    "semantic_hash": ""
+  },
+  "ast_safety.py": {
+    "mtime": 1789903294.448964,
+    "seen": 1789903615.633291,
+    "ast_hash": "8ab1749c75b81f59e4ebde466195f53f",
+    "semantic_hash": ""
+  },
+  "test_ast_safety.py": {
+    "mtime": 1789914379.6368086,
+    "seen": 1789914958.1189797,
+    "ast_hash": "8743878d6ec447e73cd639c40fe474aa",
+    "semantic_hash": ""
+  },
+  "3R2_DOCUMENTATION_PARAMETER_SYNC_REPORT.md": {
+    "mtime": 1789902978.151214,
+    "seen": 1789903615.6914606,
+    "ast_hash": "b6719a92efea6a6ff399c7f9318db3b0",
+    "semantic_hash": ""
+  },
+  "3R3_SHARED_UTILITY_CONSOLIDATION_REPORT.md": {
+    "mtime": 1789903632.2230072,
+    "seen": 1789905169.009863,
+    "ast_hash": "ac53018a90b14710baf328b52ca04735",
+    "semantic_hash": ""
+  },
+  "3R4_API_DASHBOARD_PIPELINE_HARMONIZATION_REPORT.md": {
+    "mtime": 1789905218.1326623,
+    "seen": 1789906199.8367004,
+    "ast_hash": "e67a5b4326646fc42dba08937b8e4b72",
+    "semantic_hash": ""
+  },
+  "test_vendor_foundation.py": {
+    "mtime": 1789914660.8933287,
+    "seen": 1789914958.1201,
+    "ast_hash": "9497a42ac4e17e93de71143ba36da688",
+    "semantic_hash": ""
+  },
+  "vendor_adapter.py": {
+    "mtime": 1789914325.033383,
+    "seen": 1789914958.120222,
+    "ast_hash": "cec318f32c9f42b07b371306f116d7fa",
+    "semantic_hash": ""
+  },
+  "vendor_registry.py": {
+    "mtime": 1789914337.7944722,
+    "seen": 1789914958.1202242,
+    "ast_hash": "b541cb492516d4fbcd6804b0290d1c47",
+    "semantic_hash": ""
+  },
+  "3R5_FINAL_GRAPHIFY_SECURITY_VERIFICATION_REPORT.md": {
+    "mtime": 1789906222.7616115,
+    "seen": 1789913351.3878138,
+    "ast_hash": "cecc41dc576a233cbc5bfdc6837a302b",
+    "semantic_hash": ""
+  },
+  "VENDOR2_FOUNDATION_AUDIT.md": {
+    "mtime": 1789909223.5751905,
+    "seen": 1789913351.3889399,
+    "ast_hash": "5f4bb000fd5e96868b101e06812f078e",
+    "semantic_hash": ""
+  },
+  "juniper_auditor.py": {
+    "mtime": 1789914415.6892166,
+    "seen": 1789914958.1175046,
+    "ast_hash": "f5e172805b4d965e6e616c6e3346ef43",
+    "semantic_hash": ""
+  },
+  "test_juniper_vendor.py": {
+    "mtime": 1789914594.9202614,
+    "seen": 1789914958.119719,
+    "ast_hash": "8983597ecb03096046f95a8ffe7c02f3",
+    "semantic_hash": ""
+  },
+  "dashboard/test_frontend_trusted_library.mjs": {
+    "mtime": 1789999627.899117,
+    "seen": 1790000482.8762548,
+    "ast_hash": "c7670632e0bbdc040fb65a29ff19aa4f",
+    "semantic_hash": ""
+  },
+  "test_phase3a_model_selection.py": {
+    "mtime": 1789996017.3132942,
+    "seen": 1790000482.880871,
+    "ast_hash": "7dd43545014194b6954905b5a6e2a114",
+    "semantic_hash": ""
+  },
+  "test_trusted_rule_library.py": {
+    "mtime": 1790000069.667967,
+    "seen": 1790000482.8810375,
+    "ast_hash": "6b2c00800ab5b667218161e237d19255",
+    "semantic_hash": ""
+  },
+  "dashboard/test_frontend_compliance_frameworks.mjs": {
+    "mtime": 1790010205.0642412,
+    "seen": 1790010483.9086254,
+    "ast_hash": "b333d9f063720779e3c8e2643fe194a4",
+    "semantic_hash": ""
+  },
+  "audit_report.py": {
+    "mtime": 1790013750.9865332,
+    "seen": 1790014274.2453346,
+    "ast_hash": "3f8cb9da7882882cf74e2d569f573a87",
+    "semantic_hash": ""
+  },
+  "test_audit_report.py": {
+    "mtime": 1790012794.0607088,
+    "seen": 1790013199.7692466,
+    "ast_hash": "d8ca99d6f41612fe5341791051585255",
+    "semantic_hash": ""
+  },
+  "test_report_lifecycle.py": {
+    "mtime": 1790013979.7110221,
+    "seen": 1790014274.2542093,
+    "ast_hash": "8f2cccfc095419cc481cb94b50fe539f",
+    "semantic_hash": ""
+  }
+}

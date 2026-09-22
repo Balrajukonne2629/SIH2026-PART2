@@ -123,11 +123,11 @@ export const RemediationDetailScreen: React.FC<RemediationDetailScreenProps> = (
             &larr; Back to Audit Results Matrix
           </button>
           <div className="flex items-center space-x-3">
-            <h1 className="text-xl font-bold text-white uppercase tracking-wide">
-              Remediation Detail & Static Conflict Analyzer
+            <h1 className="text-xl font-bold text-white">
+              Remediation detail &amp; static conflict analyzer
             </h1>
-            <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-rose-950 text-rose-300 border border-rose-800 font-semibold">
-              MODULE 4 — JINJA2 / CONFLICT AST
+            <span className="text-[11px] font-mono text-slate-500">
+              Module 4 — Jinja2 / Conflict AST
             </span>
           </div>
           <p className="text-xs text-slate-400 mt-1">
@@ -202,12 +202,12 @@ export const RemediationDetailScreen: React.FC<RemediationDetailScreenProps> = (
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
               <span className="w-2 h-2 rounded-full bg-rose-400"></span>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+              <h3 className="text-xs font-bold text-slate-300">
                 Root Cause & Threat Context (Module 4 AI Explainer)
               </h3>
             </div>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-purple-300 border border-purple-800/80">
-              AI MODEL MANAGER & AST CONFLICT ENGINE
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
+              AI Model Manager &amp; AST Conflict Engine
             </span>
 
           </div>

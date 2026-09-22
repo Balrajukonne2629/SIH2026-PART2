@@ -54,6 +54,19 @@ export interface RemediationDetail {
   referenceDocument?: string;
 }
 
+export interface AuditLedgerItem {
+  entry_id: string;
+  timestamp: string;
+  device_hostname: string;
+  config_file_hash: string;
+  audit_results: Record<string, any>;
+  remediation_summary?: any;
+  prevEntryHash: string;
+  entryHash: string;
+  has_canonical_report: boolean;
+  report_id: string | null;
+}
+
 export interface AuditLogEntry {
   entryId: string;
   sequence: number;

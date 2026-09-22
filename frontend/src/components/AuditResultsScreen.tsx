@@ -167,7 +167,7 @@ export const AuditResultsScreen: React.FC<AuditResultsScreenProps> = ({
           <div>
             <div className="flex items-center space-x-3">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-              <h1 className="text-xl font-bold text-white tracking-wide uppercase font-mono">
+              <h1 className="text-xl font-bold text-white font-mono">
                 {hostname}
               </h1>
               <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
@@ -243,7 +243,7 @@ export const AuditResultsScreen: React.FC<AuditResultsScreenProps> = ({
               onClick={() => setActiveTab('baseline')}
               className={`px-3 py-1.5 rounded text-xs font-mono font-semibold transition-all cursor-pointer ${
                 activeTab === 'baseline'
-                  ? 'bg-sky-600 text-white shadow-sm ring-1 ring-sky-400'
+                  ? 'bg-[#00FF41] text-black shadow-sm ring-1 ring-[#00FF41]/60'
                   : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
               }`}
             >
@@ -259,7 +259,7 @@ export const AuditResultsScreen: React.FC<AuditResultsScreenProps> = ({
                 title={fw.description}
                 className={`px-3 py-1.5 rounded text-xs font-mono font-semibold transition-all cursor-pointer ${
                   activeTab === fw.framework_id
-                    ? 'bg-sky-600 text-white shadow-sm ring-1 ring-sky-400'
+                    ? 'bg-[#00FF41] text-black shadow-sm ring-1 ring-[#00FF41]/60'
                     : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
                 }`}
               >
@@ -399,8 +399,8 @@ export const AuditResultsScreen: React.FC<AuditResultsScreenProps> = ({
             <div className="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <span className="w-2 h-2 rounded-full bg-slate-400"></span>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-                  Evaluated Rule Matrix ({filteredRules.length} of {rulesList.length})
+                <h3 className="text-xs font-bold text-slate-200">
+                  Evaluated rule matrix ({filteredRules.length} of {rulesList.length})
                 </h3>
               </div>
               <div className="flex items-center space-x-2 text-xs">
@@ -411,7 +411,7 @@ export const AuditResultsScreen: React.FC<AuditResultsScreenProps> = ({
                     onClick={() => setFilter(f)}
                     className={`px-2 py-0.5 text-[11px] font-mono rounded cursor-pointer ${
                       filter === f
-                        ? 'bg-slate-800 text-sky-400 border border-slate-700'
+                        ? 'bg-slate-800 text-[#00FF41] border border-slate-700'
                         : 'text-slate-400 hover:text-white'
                     }`}
                   >
@@ -440,19 +440,19 @@ export const AuditResultsScreen: React.FC<AuditResultsScreenProps> = ({
                     let statusBadge = null;
                     if (rule.status === 'Pass') {
                       statusBadge = (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#dcfce7] text-[#166534] border border-emerald-600">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-700">
                           PASS
                         </span>
                       );
                     } else if (rule.status === 'Fail') {
                       statusBadge = (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#fee2e2] text-[#991b1b] border border-rose-600">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-950 text-rose-300 border border-rose-700">
                           FAIL
                         </span>
                       );
                     } else {
                       statusBadge = (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#fef9c3] text-[#854d0e] border border-amber-600">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-950 text-amber-300 border border-amber-700">
                           UNKNOWN
                         </span>
                       );
@@ -711,8 +711,8 @@ export const AuditResultsScreen: React.FC<AuditResultsScreenProps> = ({
                 <div className="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <span className="w-2 h-2 rounded-full bg-sky-400"></span>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
-                      {selectedSummary.framework_name || selectedSummary.framework_id} Control Matrix ({filteredFrameworkResults.length} of {frameworkResultsList.length})
+                    <h3 className="text-xs font-bold text-slate-200">
+                      {selectedSummary.framework_name || selectedSummary.framework_id} control matrix ({filteredFrameworkResults.length} of {frameworkResultsList.length})
                     </h3>
                   </div>
                   <div className="flex items-center space-x-2 text-xs">
@@ -723,7 +723,7 @@ export const AuditResultsScreen: React.FC<AuditResultsScreenProps> = ({
                         onClick={() => setFrameworkFilter(f)}
                         className={`px-2 py-0.5 text-[11px] font-mono rounded cursor-pointer ${
                           frameworkFilter === f
-                            ? 'bg-slate-800 text-sky-400 border border-slate-700'
+                            ? 'bg-slate-800 text-[#00FF41] border border-slate-700'
                             : 'text-slate-400 hover:text-white'
                         }`}
                       >
@@ -761,19 +761,19 @@ export const AuditResultsScreen: React.FC<AuditResultsScreenProps> = ({
                           let statusBadge = null;
                           if (statusUpper === 'PASS') {
                             statusBadge = (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#dcfce7] text-[#166534] border border-emerald-600">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-700">
                                 PASS
                               </span>
                             );
                           } else if (statusUpper === 'FAIL') {
                             statusBadge = (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#fee2e2] text-[#991b1b] border border-rose-600">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-950 text-rose-300 border border-rose-700">
                                 FAIL
                               </span>
                             );
                           } else {
                             statusBadge = (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#fef9c3] text-[#854d0e] border border-amber-600">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-950 text-amber-300 border border-amber-700">
                                 UNKNOWN
                               </span>
                             );

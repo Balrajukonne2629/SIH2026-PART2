@@ -191,16 +191,13 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
       {/* Screen Title Bar */}
       <div className="border-b border-slate-800 pb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-white uppercase tracking-wide">
+          <h1 className="text-2xl font-bold text-white">
             Configuration Ingestion & Intake
           </h1>
           <p className="text-xs text-slate-400 mt-1">
             Upload raw Cisco IOS-XE configuration (.cfg, .txt) to execute deterministic CSM parsing and baseline compliance verification.
           </p>
         </div>
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded text-[11px] font-mono bg-slate-800 text-slate-300 border border-slate-700">
-          API: http://127.0.0.1:8000
-        </span>
       </div>
 
       {/* Upload Error Banner */}
@@ -233,7 +230,7 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
             onDrop={handleDrop}
             className={`border-2 border-dashed rounded p-8 text-center transition-all ${
               dragActive
-                ? 'border-sky-500 bg-sky-950/20'
+                ? 'border-[#00FF41] bg-[#00FF41]/5'
                 : 'border-slate-700 bg-slate-900/60 hover:border-slate-600'
             }`}
           >
@@ -252,7 +249,7 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
             </div>
 
             <h3 className="text-sm font-semibold text-slate-200">
-              Select or Drag & Drop Cisco IOS-XE Configuration File
+              Select or Drag &amp; Drop Cisco IOS-XE Configuration File
             </h3>
             <p className="text-xs text-slate-400 mt-1">
               Supports standard Cisco CLI output (<code className="font-mono text-slate-300">show running-config</code>), .txt or .cfg
@@ -262,7 +259,7 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded text-xs font-medium transition-colors cursor-pointer border border-sky-400"
+                className="px-4 py-2 bg-[#FF3333] hover:bg-[#cc0000] text-black rounded text-xs font-bold transition-colors cursor-pointer border border-[#FF3333]/80"
               >
                 Browse Local File
               </button>
@@ -286,8 +283,8 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
               <div className="flex items-center justify-between border-b border-slate-800 pb-3 mb-3">
                 <div className="flex items-center space-x-2">
                   <span className="w-2 h-2 rounded-full bg-sky-400"></span>
-                  <span className="text-xs font-semibold uppercase text-slate-300">
-                    Staged Configuration Payload
+                  <span className="text-xs font-semibold text-slate-300">
+                    Staged configuration payload
                   </span>
                 </div>
                 <span className="font-mono text-[11px] text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-2 py-0.5 rounded">
@@ -328,7 +325,7 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
                   className={`px-6 py-2.5 rounded text-xs font-bold uppercase tracking-wider transition-colors shadow-sm flex items-center gap-2 border cursor-pointer ${
                     isUploading || currentUser?.role === 'viewer'
                       ? 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'
-                      : 'bg-sky-600 hover:bg-sky-500 text-white border-sky-400'
+                      : 'bg-[#FF3333] hover:bg-[#cc0000] text-black border-[#FF3333]/80'
                   }`}
                 >
                   {isUploading ? (
@@ -353,7 +350,7 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
         {/* Right Column: Ingestion Protocol & Validation Policy */}
         <div className="lg:col-span-4 space-y-4">
           <div className="bg-slate-900 border border-slate-800 rounded p-4">
-            <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <h4 className="text-xs font-bold text-slate-200 mb-3 flex items-center gap-2">
               <span className="w-1.5 h-1.5 bg-sky-400 rounded-sm"></span>
               CSM Audit Protocol Verification
             </h4>
@@ -399,7 +396,7 @@ export const UploadScreen: React.FC<UploadScreenProps> = ({
         <div className="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <span className="w-2 h-2 rounded-full bg-slate-400"></span>
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+            <h3 className="text-xs font-bold text-slate-200">
               Recent Audits Log (Ledger Source of Truth)
             </h3>
           </div>

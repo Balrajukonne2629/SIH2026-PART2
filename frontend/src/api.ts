@@ -3,7 +3,7 @@
  * Endpoints at http://127.0.0.1:8000
  */
 
-import type { LoginResponse, UserIdentity, ModelStatus, ModelModeUpdateRequest, ModelModeUpdateResponse, TrustedMappingItem, SuggestionQueueItem, FrameworksListResponse, MultiFrameworkAuditResult } from './types';
+import type { LoginResponse, UserIdentity, ModelStatus, ModelModeUpdateRequest, ModelModeUpdateResponse, TrustedMappingItem, SuggestionQueueItem, FrameworksListResponse, MultiFrameworkAuditResult, AuditLedgerItem } from './types';
 
 // Use relative path '' so Vite dev proxy forwards /api -> http://127.0.0.1:8000
 export const API_BASE = '';
@@ -254,8 +254,8 @@ export async function finalizeAudit(sessionId: string, remediationSummary?: any)
 }
 
 // 7. GET /api/ledger
-export async function getLedger() {
-  return request<any[]>('/api/ledger');
+export async function getLedger(): Promise<AuditLedgerItem[]> {
+  return request<AuditLedgerItem[]>('/api/ledger');
 }
 
 // 8. GET /api/ledger/verify
@@ -316,5 +316,48 @@ export async function evaluateCompliance(payload: {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
+}
+
+// 15. GET /api/reports/{report_id} — canonical AuditReport
+export async function getCanonicalReport(reportId: string): Promise<any> {
+  return request<any>(`/api/reports/${encodeURIComponent(reportId)}`);
+}
+
+// 15b. GET /api/reports/by-entry/{entry_id} — look up report by ledger entry_id
+export async function getReportByEntryId(entryId: string): Promise<any> {
+  return request<any>(`/api/reports/by-entry/${encodeURIComponent(entryId)}`);
+}
+
+// 16. PATCH /api/reports/{report_id} — edit an allowlisted field
+export async function patchCanonicalReport(
+  reportId: string,
+  fieldPath: string,
+  newValue: string,
+  expectedVersion: number
+): Promise<any> {
+  return request<any>(`/api/reports/${encodeURIComponent(reportId)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ field_path: fieldPath, new_value: newValue, expected_version: expectedVersion }),
+  });
+}
+
+// 17. Authenticated binary download helper (POST for PDF/DOCX export).
+// Uses fetch + Bearer token — a plain <a href> would drop the Authorization header.
+export async function exportCanonicalReportBlob(
+  reportId: string,
+  format: 'pdf' | 'docx'
+): Promise<Blob> {
+  const url = `${API_BASE}/api/reports/${encodeURIComponent(reportId)}/export/${format}`;
+  const token = getAccessToken();
+  const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {};
+  const res = await fetch(url, { method: 'POST', headers });
+  if (!res.ok) {
+    let msg = `HTTP ${res.status}`;
+    try { const body = await res.json(); if (body.detail) msg = typeof body.detail === 'string' ? body.detail : JSON.stringify(body.detail); } catch { /* keep default */ }
+    if (res.status === 401) { clearAccessToken(); notifyUnauthorized(); }
+    throw new ApiError(res.status, msg);
+  }
+  return res.blob();
 }
 

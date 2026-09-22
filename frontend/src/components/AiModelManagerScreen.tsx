@@ -107,10 +107,13 @@ export const AiModelManagerScreen: React.FC<AiModelManagerScreenProps> = ({
       case 'auto':
         return 'bg-sky-950/80 text-sky-300 border-sky-700/80';
       case 'fast':
-        return 'bg-emerald-950/80 text-emerald-300 border-emerald-700/80';
+        // indigo: performance choice — outside emerald (trust) and amber (warning) families
+        return 'bg-indigo-950/80 text-indigo-300 border-indigo-700/80';
       case 'quality':
-        return 'bg-purple-950/80 text-purple-300 border-purple-700/80';
+        // teal: depth/precision — informational, not alarming, not amber
+        return 'bg-teal-950/80 text-teal-300 border-teal-700/80';
       case 'override':
+        // amber: manual admin override is genuinely cautionary
         return 'bg-amber-950/80 text-amber-300 border-amber-700/80';
       default:
         return 'bg-slate-800 text-slate-300 border-slate-700';
@@ -132,14 +135,14 @@ export const AiModelManagerScreen: React.FC<AiModelManagerScreenProps> = ({
             <Radio className="w-3.5 h-3.5 animate-pulse text-emerald-400" />
             <span>SOC SUBSYSTEM 06</span>
             <span className="text-slate-600">/</span>
-            <span className="text-slate-400">RUNTIME CONTROL</span>
+            <span className="text-slate-400">Runtime Control</span>
             <span className="text-slate-600">/</span>
-            <span>AIR-GAPPED LOCAL INFERENCE</span>
+            <span>Air-gapped local inference</span>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-xl font-bold text-white uppercase tracking-wide flex items-center gap-2">
+            <h1 className="text-xl font-bold text-white flex items-center gap-2">
               <Sliders className="w-5 h-5 text-sky-400" />
-              AI Model Manager & Hardware Runtime
+              AI Model Manager &amp; Hardware Runtime
             </h1>
             <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-slate-800 text-sky-300 border border-slate-700 font-semibold">
               v4.2 LOCAL ENGINE
@@ -255,107 +258,75 @@ export const AiModelManagerScreen: React.FC<AiModelManagerScreenProps> = ({
         </div>
       )}
 
-      {/* 4-Column Operational Telemetry Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Operating Mode */}
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-xs text-slate-400 mb-2 font-mono">
-              <span>OPERATIONAL MODE</span>
-              <Activity className="w-4 h-4 text-sky-400" />
+      {/* Operational Telemetry Strip — 2-column layout, no repeated icon-box pattern */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Left: Mode + Model (stacked, primary info) */}
+        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 space-y-3">
+          <div className="flex items-start justify-between">
+            <div>
+              <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">Operating mode</div>
+              <div className="flex items-center gap-2">
+                <span className={`px-2.5 py-1 rounded text-xs font-mono font-bold uppercase border ${getModeBadgeColor(status?.mode || 'auto')}`}>
+                  {status?.mode || 'AUTO'}
+                </span>
+                <span className="text-[11px] text-slate-400 font-mono">
+                  configured: <span className="text-slate-300">{status?.configured_mode?.toUpperCase() || 'AUTO'}</span>
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1.5 max-w-xs">
+                {status?.mode === 'auto' && 'Adaptive routing based on workload complexity and host compute.'}
+                {status?.mode === 'fast' && 'Pinned to ultra-low latency model (llama3.2:1b, 60s timeout).'}
+                {status?.mode === 'quality' && 'Pinned to deep reasoning model (qwen2.5:7b, 180s timeout).'}
+                {status?.mode === 'override' && `Manual administrator override: ${status.override_model || 'Custom'}.`}
+                {!status && 'Loading operational mode...'}
+              </p>
             </div>
-            <div className="flex items-center gap-2">
-              <span className={`px-2.5 py-1 rounded text-xs font-mono font-bold uppercase border ${getModeBadgeColor(status?.mode || 'auto')}`}>
-                {status?.mode || 'AUTO'}
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-400 mt-2">
-              {status?.mode === 'auto' && 'Adaptive routing based on workload complexity and host compute.'}
-              {status?.mode === 'fast' && 'Pinned to ultra-low latency model (llama3.2:1b, 60s timeout).'}
-              {status?.mode === 'quality' && 'Pinned to deep reasoning model (qwen2.5:7b, 180s timeout).'}
-              {status?.mode === 'override' && `Manual administrator override: ${status.override_model || 'Custom'}.`}
-              {!status && 'Loading operational mode...'}
-            </p>
+            <Activity className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
           </div>
-          <div className="border-t border-slate-800/80 pt-2 mt-3 text-[10px] font-mono text-slate-500">
-            CONFIGURED: <span className="text-slate-300">{status?.configured_mode?.toUpperCase() || 'AUTO'}</span>
-          </div>
-        </div>
 
-        {/* Card 2: Effective Model & Execution Path */}
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-xs text-slate-400 mb-2 font-mono">
-              <span>{status?.ollama_alive ? 'ACTIVE INFERENCE MODEL' : 'ACTIVE EXECUTION PATH'}</span>
-              <Sparkles className="w-4 h-4 text-purple-400" />
+          <div className="border-t border-slate-800 pt-3">
+            <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">
+              {status?.ollama_alive ? 'Active inference model' : 'Active execution path'}
             </div>
             <div className="text-sm font-bold font-mono text-white truncate" title={status?.effective_model}>
-              {loading
-                ? 'Probing...'
-                : !status?.ollama_alive
-                ? 'Deterministic Fallback Engine'
-                : status?.effective_model || 'deterministic_only'}
+              {loading ? 'Probing...' : !status?.ollama_alive ? 'Deterministic Fallback Engine' : status?.effective_model || 'deterministic_only'}
             </div>
-            <p className="text-[11px] text-slate-400 mt-2">
-              {!status?.ollama_alive ? (
-                <span className="text-amber-300">
-                  Daemon offline on loopback. Configured target: <code className="text-slate-200">{status?.effective_model}</code> (dormant). Executing AST regex/template fallback.
-                </span>
-              ) : (
-                <>
-                  {status?.effective_model?.includes('llama') && 'Meta Llama 3.2 1B Quantized • 1.3B Params • Fast Mapping'}
-                  {status?.effective_model?.includes('qwen') && 'Qwen 2.5 7B Instruct Q4_K_M • 7.6B Params • Deep Remediation'}
-                  {status?.effective_model === 'deterministic_only' && 'Air-Gapped Python Parser & Rule Engine • Zero-AI Fallback'}
-                </>
-              )}
-            </p>
-          </div>
-          <div className="border-t border-slate-800/80 pt-2 mt-3 text-[10px] font-mono text-slate-500 flex justify-between">
-            <span>CONFIGURED: <span className="text-slate-300">{status?.effective_model || '—'}</span></span>
-            <span>
-              STATUS:{' '}
+            <div className="flex items-center justify-between mt-1 text-[10px] font-mono">
+              <span className="text-slate-500">{status?.effective_model || '—'}</span>
               <span className={status?.ollama_alive ? 'text-emerald-400' : 'text-amber-400 font-bold'}>
                 {status?.ollama_alive ? 'ONLINE' : 'FALLBACK'}
               </span>
-            </span>
+            </div>
           </div>
         </div>
 
-
-        {/* Card 3: Host Compute & Memory */}
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-xs text-slate-400 mb-2 font-mono">
-              <span>HOST MEMORY UTILIZATION</span>
-              <HardDrive className="w-4 h-4 text-emerald-400" />
+        {/* Right: Hardware vitals (memory bar + acceleration inline) */}
+        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 space-y-3">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">Host memory</div>
+              <div className="flex items-baseline gap-1.5 text-sm font-bold font-mono text-white">
+                <span>{availRam.toFixed(1)} GB</span>
+                <span className="text-xs text-slate-400 font-normal">avail / {totalRam.toFixed(1)} GB total</span>
+              </div>
+              <div className="w-full bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${
+                    ramPercent > 85 ? 'bg-rose-500' : ramPercent > 65 ? 'bg-amber-500' : 'bg-emerald-500'
+                  }`}
+                  style={{ width: `${ramPercent}%` }}
+                />
+              </div>
+              <div className="flex justify-between text-[10px] font-mono text-slate-500 mt-1">
+                <span>CPU cores: <span className="text-slate-300">{status?.hardware_profile?.cpu_cores ?? '—'}</span></span>
+                <span>threads: <span className="text-slate-300">{status?.hardware_profile?.cpu_threads ?? '—'}</span></span>
+              </div>
             </div>
-            <div className="flex items-baseline gap-1 text-sm font-bold font-mono text-white">
-              <span>{availRam.toFixed(1)} GB</span>
-              <span className="text-xs text-slate-400 font-normal">avail / {totalRam.toFixed(1)} GB total</span>
-            </div>
-            {/* Progress meter */}
-            <div className="w-full bg-slate-800 h-2 rounded-full mt-2.5 overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all ${
-                  ramPercent > 85 ? 'bg-rose-500' : ramPercent > 65 ? 'bg-amber-500' : 'bg-emerald-500'
-                }`}
-                style={{ width: `${ramPercent}%` }}
-              />
-            </div>
+            <HardDrive className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5 ml-3" />
           </div>
-          <div className="border-t border-slate-800/80 pt-2 mt-3 text-[10px] font-mono text-slate-500 flex justify-between">
-            <span>CPU CORES: <span className="text-slate-300">{status?.hardware_profile?.cpu_cores ?? '—'}</span></span>
-            <span>THREADS: <span className="text-slate-300">{status?.hardware_profile?.cpu_threads ?? '—'}</span></span>
-          </div>
-        </div>
 
-        {/* Card 4: Acceleration & Boundary */}
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-xs text-slate-400 mb-2 font-mono">
-              <span>ACCELERATION & ISOLATION</span>
-              <Cpu className="w-4 h-4 text-amber-400" />
-            </div>
+          <div className="border-t border-slate-800 pt-3">
+            <div className="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">Acceleration</div>
             <div className="text-sm font-bold font-mono text-white flex items-center gap-2">
               {status?.hardware_profile?.has_gpu ? (
                 <span className="text-emerald-400 flex items-center gap-1">
@@ -363,17 +334,14 @@ export const AiModelManagerScreen: React.FC<AiModelManagerScreenProps> = ({
                 </span>
               ) : (
                 <span className="text-sky-300 flex items-center gap-1">
-                  <Cpu className="w-4 h-4 text-slate-400" /> CPU Execution
+                  <Cpu className="w-4 h-4 text-slate-400" /> CPU execution
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-slate-400 mt-2 font-mono truncate">
-              {status?.hardware_profile?.gpu_name || 'Host CPU Quantized (Ollama AVX2/F16C)'}
-            </p>
-          </div>
-          <div className="border-t border-slate-800/80 pt-2 mt-3 text-[10px] font-mono text-slate-500 flex justify-between">
-            <span>EGRESS: <span className="text-emerald-400">AIR-GAPPED</span></span>
-            <span>RESTRICTION: <span className="text-sky-400">LOCAL ONLY</span></span>
+            <div className="flex justify-between text-[10px] font-mono mt-1">
+              <span className="text-slate-400 truncate">{status?.hardware_profile?.gpu_name || 'Host CPU AVX2 quantized'}</span>
+              <span className="text-emerald-400 ml-2 shrink-0">AIR-GAPPED</span>
+            </div>
           </div>
         </div>
       </div>
@@ -383,8 +351,8 @@ export const AiModelManagerScreen: React.FC<AiModelManagerScreenProps> = ({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2">
             <Sliders className="w-4 h-4 text-sky-400" />
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-              Runtime Operational Mode Switcher
+            <h2 className="text-sm font-bold text-white">
+              Runtime operational mode switcher
             </h2>
           </div>
           <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
@@ -448,13 +416,13 @@ export const AiModelManagerScreen: React.FC<AiModelManagerScreenProps> = ({
               onClick={() => setSelectedMode('fast')}
               className={`p-3.5 rounded-lg border text-left transition-all cursor-pointer disabled:cursor-not-allowed ${
                 selectedMode === 'fast'
-                  ? 'bg-emerald-950/60 border-emerald-500 ring-1 ring-emerald-500'
+                  ? 'bg-indigo-950/60 border-indigo-500 ring-1 ring-indigo-500'
                   : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-300'
               }`}
             >
               <div className="flex items-center justify-between mb-1.5">
-                <span className="font-mono text-xs font-bold text-emerald-400 uppercase">FAST (1.3B)</span>
-                {selectedMode === 'fast' && <CheckCircle2 className="w-4 h-4 text-emerald-400" />}
+                <span className="font-mono text-xs font-bold text-indigo-400 uppercase">FAST (1.3B)</span>
+                {selectedMode === 'fast' && <CheckCircle2 className="w-4 h-4 text-indigo-400" />}
               </div>
               <p className="text-[11px] text-slate-400">
                 Pins all inference tasks to llama3.2:1b. Minimal RAM overhead (~1.5GB) and ~6s response.
@@ -471,13 +439,13 @@ export const AiModelManagerScreen: React.FC<AiModelManagerScreenProps> = ({
               onClick={() => setSelectedMode('quality')}
               className={`p-3.5 rounded-lg border text-left transition-all cursor-pointer disabled:cursor-not-allowed ${
                 selectedMode === 'quality'
-                  ? 'bg-purple-950/60 border-purple-500 ring-1 ring-purple-500'
+                  ? 'bg-teal-950/60 border-teal-500 ring-1 ring-teal-500'
                   : 'bg-slate-950/60 border-slate-800 hover:border-slate-700 text-slate-300'
               }`}
             >
               <div className="flex items-center justify-between mb-1.5">
-                <span className="font-mono text-xs font-bold text-purple-400 uppercase">QUALITY (7.6B)</span>
-                {selectedMode === 'quality' && <CheckCircle2 className="w-4 h-4 text-purple-400" />}
+                <span className="font-mono text-xs font-bold text-teal-400 uppercase">QUALITY (7.6B)</span>
+                {selectedMode === 'quality' && <CheckCircle2 className="w-4 h-4 text-teal-400" />}
               </div>
               <p className="text-[11px] text-slate-400">
                 Pins inference to qwen2.5:7b-instruct. High fidelity syntax reasoning and conflict analysis.
@@ -602,8 +570,8 @@ export const AiModelManagerScreen: React.FC<AiModelManagerScreenProps> = ({
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2">
             <Layers className="w-4 h-4 text-sky-400" />
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-              Workload Routing & Latency Guardrail Matrix
+            <h2 className="text-sm font-bold text-white">
+              Workload routing &amp; latency guardrail matrix
             </h2>
           </div>
           <span className="text-[10px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
@@ -714,91 +682,91 @@ export const AiModelManagerScreen: React.FC<AiModelManagerScreenProps> = ({
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2">
             <Cpu className="w-4 h-4 text-emerald-400" />
-            <h2 className="text-sm font-bold text-white uppercase tracking-wider">
-              Host Hardware Diagnostics & Environment Inspector
+            <h2 className="text-sm font-bold text-white">
+              Host hardware diagnostics &amp; environment
             </h2>
           </div>
           <span className="text-[11px] font-mono text-slate-400">
-            Probe Status:{' '}
+            Probe:{' '}
             <span className={status?.hardware_profile?.probe_error ? 'text-rose-400' : 'text-emerald-400'}>
-              {status?.hardware_profile?.probe_error ? 'Warning / Fallback Profile' : 'Nominal / Accurate'}
+              {status?.hardware_profile?.probe_error ? 'Warning / fallback profile' : 'Nominal / accurate'}
             </span>
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-xs">
-          {/* Memory Detailed Panel */}
+        {/* 2-column: RAM+CPU left, Acceleration right */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
+          {/* Left: Memory + Processor combined */}
           <div className="bg-slate-950 border border-slate-800/80 rounded p-4 space-y-2">
-            <div className="text-slate-400 font-bold text-[11px] flex items-center justify-between">
-              <span>RAM ARCHITECTURE</span>
+            <div className="text-slate-400 font-bold text-[11px] flex items-center justify-between mb-2">
+              <span>RAM &amp; PROCESSOR</span>
               <HardDrive className="w-3.5 h-3.5 text-slate-500" />
             </div>
             <div className="flex justify-between py-1 border-b border-slate-900">
-              <span className="text-slate-500">Total Physical RAM:</span>
+              <span className="text-slate-500">Total RAM:</span>
               <span className="text-white font-semibold">{totalRam.toFixed(2)} GB</span>
             </div>
             <div className="flex justify-between py-1 border-b border-slate-900">
-              <span className="text-slate-500">Available Headroom:</span>
+              <span className="text-slate-500">Available headroom:</span>
               <span className="text-emerald-400 font-semibold">{availRam.toFixed(2)} GB</span>
             </div>
-            <div className="flex justify-between py-1">
-              <span className="text-slate-500">Model Memory Ceiling:</span>
-              <span className="text-sky-400 font-semibold">&lt; 8.0 GB (Configured Limit)</span>
-            </div>
-          </div>
-
-          {/* Processor Detailed Panel */}
-          <div className="bg-slate-950 border border-slate-800/80 rounded p-4 space-y-2">
-            <div className="text-slate-400 font-bold text-[11px] flex items-center justify-between">
-              <span>PROCESSOR TOPOLOGY</span>
-              <Cpu className="w-3.5 h-3.5 text-slate-500" />
+            <div className="flex justify-between py-1 border-b border-slate-900">
+              <span className="text-slate-500">Model memory ceiling:</span>
+              <span className="text-sky-400 font-semibold">&lt; 8.0 GB configured</span>
             </div>
             <div className="flex justify-between py-1 border-b border-slate-900">
-              <span className="text-slate-500">Physical Cores:</span>
+              <span className="text-slate-500">Physical cores:</span>
               <span className="text-white font-semibold">{status?.hardware_profile?.cpu_cores ?? 'N/A'}</span>
             </div>
             <div className="flex justify-between py-1 border-b border-slate-900">
-              <span className="text-slate-500">Logical Threads:</span>
+              <span className="text-slate-500">Logical threads:</span>
               <span className="text-sky-400 font-semibold">{status?.hardware_profile?.cpu_threads ?? 'N/A'}</span>
             </div>
             <div className="flex justify-between py-1">
-              <span className="text-slate-500">Inference Threads:</span>
-              <span className="text-emerald-400 font-semibold">Max 4 Parallel (Configured Limit)</span>
+              <span className="text-slate-500">Inference threads:</span>
+              <span className="text-emerald-400 font-semibold">Max 4 parallel</span>
             </div>
           </div>
 
-          {/* Graphics & Acceleration Panel */}
+          {/* Right: Acceleration */}
           <div className="bg-slate-950 border border-slate-800/80 rounded p-4 space-y-2">
-            <div className="text-slate-400 font-bold text-[11px] flex items-center justify-between">
+            <div className="text-slate-400 font-bold text-[11px] flex items-center justify-between mb-2">
               <span>ACCELERATION SUBSYSTEM</span>
               <Zap className="w-3.5 h-3.5 text-slate-500" />
             </div>
             <div className="flex justify-between py-1 border-b border-slate-900">
-              <span className="text-slate-500">Acceleration Mode:</span>
+              <span className="text-slate-500">Acceleration mode:</span>
               <span className="text-white font-semibold">
-                {status?.hardware_profile?.has_gpu ? 'Dedicated / CUDA' : 'CPU (AVX2 Quantized)'}
+                {status?.hardware_profile?.has_gpu ? 'Dedicated / CUDA' : 'CPU AVX2 quantized'}
               </span>
             </div>
             <div className="flex justify-between py-1 border-b border-slate-900">
               <span className="text-slate-500">Dedicated VRAM:</span>
               <span className="text-slate-300 font-semibold">
-                {status?.hardware_profile?.vram_gb ? `${status.hardware_profile.vram_gb} GB` : 'Shared System RAM'}
+                {status?.hardware_profile?.vram_gb ? `${status.hardware_profile.vram_gb} GB` : 'Shared system RAM'}
               </span>
             </div>
+            <div className="flex justify-between py-1 border-b border-slate-900">
+              <span className="text-slate-500">Loopback IPC target:</span>
+              <span className="text-emerald-400 font-semibold">&lt; 2 ms</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-slate-900">
+              <span className="text-slate-500">Egress:</span>
+              <span className="text-emerald-400 font-semibold">AIR-GAPPED (0 KB)</span>
+            </div>
             <div className="flex justify-between py-1">
-              <span className="text-slate-500">Architecture Spec:</span>
-              <span className="text-emerald-400 font-semibold">&lt; 2 ms (Loopback IPC Target)</span>
+              <span className="text-slate-500">Network restriction:</span>
+              <span className="text-sky-400 font-semibold">Local only</span>
             </div>
           </div>
-
         </div>
       </div>
 
       {/* Security Principles & Air-Gap Compliance Assurance Card */}
       <div className="bg-slate-950 border border-slate-800 rounded-lg p-5 font-mono text-xs">
-        <div className="flex items-center gap-2 text-slate-300 font-bold uppercase mb-3">
+        <div className="flex items-center gap-2 text-slate-300 font-bold mb-3">
           <Shield className="w-4 h-4 text-sky-400" />
-          <span>AIR-GAPPED COMPLIANCE ASSURANCES & NTRO BOUNDARY RULES</span>
+          <span>Air-gapped compliance assurances &amp; NTRO boundary rules</span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-slate-400">
           <div className="border border-slate-800/80 rounded p-3 bg-slate-900/30">

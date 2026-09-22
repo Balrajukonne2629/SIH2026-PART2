@@ -996,16 +996,49 @@ async def finalize_audit(
 async def get_ledger(
     current_user: Dict[str, Any] = Depends(require_role("viewer", "uploader", "reviewer"))
 ):
-    """Returns chronological list of all hash-chained audit entries from SQLite."""
+    """Returns chronological list of all hash-chained audit entries from SQLite,
+    including canonical report metadata (has_canonical_report, report_id) via LEFT JOIN
+    to prevent client-side N+1 query loops.
+    """
     conn = database.get_connection()
     cur = conn.cursor()
-    cur.execute('SELECT * FROM audit_ledger ORDER BY id ASC')
+    cur.execute('''
+        SELECT
+            al.entry_id,
+            al.timestamp,
+            al.device_hostname,
+            al.config_file_hash,
+            al.audit_results,
+            al.remediation_summary,
+            al.prevEntryHash,
+            al.entryHash,
+            al.owner_user_id AS ledger_owner,
+            ar.report_id AS canonical_report_id,
+            ar.created_by AS report_created_by,
+            s.owner_user_id AS session_owner
+        FROM audit_ledger al
+        LEFT JOIN audit_reports ar ON al.entry_id = ar.audit_entry_id
+        LEFT JOIN audit_sessions s ON ar.session_id = s.session_id
+        ORDER BY al.id ASC
+    ''')
     rows = cur.fetchall()
     conn.close()
+
+    user_role = current_user.get("role")
+    user_id = current_user.get("sub")
 
     entries = []
     for row in rows:
         try:
+            # Enforce anti-enumeration for uploaders
+            is_authorized = True
+            if user_role == "uploader":
+                owner = row["session_owner"] or row["ledger_owner"] or row["report_created_by"]
+                if owner and owner != user_id:
+                    is_authorized = False
+
+            rep_id = row["canonical_report_id"] if (is_authorized and row["canonical_report_id"]) else None
+
             entry = {
                 "entry_id": row["entry_id"],
                 "timestamp": row["timestamp"],
@@ -1014,7 +1047,9 @@ async def get_ledger(
                 "audit_results": json.loads(row["audit_results"]) if row["audit_results"] else {},
                 "remediation_summary": json.loads(row["remediation_summary"]) if row["remediation_summary"] else None,
                 "prevEntryHash": row["prevEntryHash"],
-                "entryHash": row["entryHash"]
+                "entryHash": row["entryHash"],
+                "has_canonical_report": bool(rep_id),
+                "report_id": rep_id
             }
             entries.append(entry)
         except Exception:
@@ -1267,6 +1302,23 @@ async def evaluate_compliance(
 
 
 # --- 13. Canonical AuditReport Endpoints (Phase 3D.5) ---
+
+@app.get("/api/reports/by-entry/{entry_id}")
+async def get_canonical_report_by_entry(
+    entry_id: str,
+    current_user: Dict[str, Any] = Depends(require_role("viewer", "uploader", "reviewer"))
+):
+    """Retrieves the canonical AuditReport for a given audit ledger entry_id.
+
+    Allows the frontend to bridge from a ledger entry_id (returned by /api/ledger)
+    to the canonical report for that audit. Enforces the same ownership isolation as
+    the report_id-based endpoint.
+    """
+    raw_report = database.get_audit_report_by_entry_id(entry_id)
+    if not raw_report:
+        raise HTTPException(status_code=404, detail=f"No canonical report found for entry '{entry_id}'.")
+    return check_report_ownership(raw_report, current_user, raw_report.get("report_id", entry_id))
+
 
 @app.get("/api/reports/{report_id}")
 async def get_canonical_report(
