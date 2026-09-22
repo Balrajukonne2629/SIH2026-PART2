@@ -23,7 +23,7 @@ services:
 
   frontend:
     build:
-      context: ./dashboard
+      context: ./frontend
       dockerfile: Dockerfile
     container_name: ntro-frontend
     restart: unless-stopped

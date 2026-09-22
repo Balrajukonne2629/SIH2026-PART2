@@ -1,0 +1,22 @@
+# Graphify code-first indexing scope
+# Exclude non-code documentation, references, and datasets
+docs/
+references/
+reports/
+datasets/
+data/
+artifacts/
+templates/
+
+# Exclude dependencies and build output
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+build/
+.git/
+__pycache__/
+*.pdf
+*.pptx
+*.zip
+*.tar.gz

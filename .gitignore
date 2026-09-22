@@ -30,7 +30,7 @@ ENV/
 env.bak/
 venv.bak/
 
-# Node & Frontend (dashboard)
+# Node & Frontend
 node_modules/
 **/node_modules/
 npm-debug.log*
@@ -38,7 +38,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
-dashboard/dist/
+frontend/dist/
 dist/
 .eslintcache
 .stylelintcache
@@ -86,3 +86,10 @@ cisco_compliance_report.pdf
 # Test and Visual Check Artifacts
 *.visual-check.*
 ntro-architecture.visual-check.*
+
+# Graphify Local Cache
+graphify-out/cache/
+
+# Runtime exports and test databases
+data/exports/
+data/test_*.db
